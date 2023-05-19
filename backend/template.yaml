@@ -11,6 +11,11 @@ Globals:
     Timeout: 3
     Runtime: nodejs18.x
     Tracing: Active
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref todos
+        API_URL: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todo-app-aws/todos"
+
   Api:
     TracingEnabled: true
 
@@ -19,11 +24,14 @@ Resources:
   getTodos:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: functions/handlers
+      CodeUri: ./functions/handlers
       Handler: getTodos.handler
-      
       Architectures:
       - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
       Events:
         getTodosEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -39,15 +47,45 @@ Resources:
         EntryPoints:
         - getTodos.ts
 
+ # Get by id
+  getTodoById:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./functions/handlers
+      Handler: getTodoById.handler
+      Architectures:
+      - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
+      Events:
+        getTodoByIdEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /{id}
+            Method: get
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - getTodoById.ts
+
   # Create todo
   createTodo:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: functions/handlers
-      Handler: createTodo.handler
-      
+      Handler: createTodo.handler      
       Architectures:
       - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
       Events:
         createTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -69,9 +107,12 @@ Resources:
     Properties:
       CodeUri: functions/handlers
       Handler: updateTodo.handler
-      
       Architectures:
       - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
       Events:
         updateTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -93,9 +134,12 @@ Resources:
     Properties:
       CodeUri: functions/handlers
       Handler: deleteTodo.handler
-      
       Architectures:
       - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
       Events:
         deleteTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -117,9 +161,12 @@ Resources:
     Properties:
       CodeUri: functions/handlers
       Handler: toggleTodo.handler
-      
       Architectures:
       - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: !Ref todos
       Events:
         toggleTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -135,16 +182,35 @@ Resources:
         EntryPoints:
         - toggleTodo.ts
 
+# Table
+  DynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: todos
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: title
+          AttributeType: S
+        - AttributeName: content
+          AttributeType: S
+        - AttributeName: creation_date
+          AttributeType: S
+        - AttributeName: last_modification_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: creation_date
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   TodoAppApi:
     Description: A todo app with svelte and AWS
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todo-app-aws/"
-  # HelloWorldFunction:
-  #   Description: Hello World Lambda Function ARN
-  #   Value: !GetAtt HelloWorldFunction.Arn
-  # HelloWorldFunctionIamRole:
-  #   Description: Implicit IAM Role created for Hello World function
-  #   Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todo-app-aws/todos"
