@@ -7,7 +7,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         const dynamoDB = new DynamoDB.DocumentClient({
-            endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
+            endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://host.docker.internal:8000' : undefined,
         });
         const params: DynamoDB.DocumentClient.ScanInput = {
             TableName: process.env.TABLE_NAME,
