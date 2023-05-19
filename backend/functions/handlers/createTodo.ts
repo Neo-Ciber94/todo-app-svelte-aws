@@ -41,14 +41,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     try {
         const result = await dynamoDB.put(params).promise();
-        const apiUrl = process.env.API_URL;
+        //const apiUrl = process.env.API_URL;
         console.log('Record inserted successfully.');
         return {
             statusCode: 201,
             body: JSON.stringify(result.$response.data),
-            headers: {
-                Location: `${apiUrl}/${id}`,
-            },
+            // headers: {
+            //     Location: `${apiUrl}/${id}`,
+            // },
         };
     } catch (error) {
         console.error('Error inserting record:', error);

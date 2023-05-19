@@ -13,8 +13,7 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        TABLE_NAME: !Ref todos
-        API_URL: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todo-app-aws/todos"
+        TABLE_NAME: todos
 
   Api:
     TracingEnabled: true
@@ -31,7 +30,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         getTodosEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -58,7 +57,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         getTodoByIdEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -85,7 +84,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         createTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -112,7 +111,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         updateTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -139,7 +138,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         deleteTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -166,7 +165,7 @@ Resources:
       Policies:
         # Give Create/Read/Update/Delete Permissions to the todos table
         - DynamoDBCrudPolicy:
-            TableName: !Ref todos
+            TableName: todos
       Events:
         toggleTodoEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -183,7 +182,7 @@ Resources:
         - toggleTodo.ts
 
 # Table
-  DynamoDBTable:
+  TodoDbTable:
     Type: 'AWS::DynamoDB::Table'
     Properties:
       TableName: todos
@@ -194,14 +193,24 @@ Resources:
           AttributeType: S
         - AttributeName: content
           AttributeType: S
-        - AttributeName: creation_date
+        - AttributeName: done
+          AttributeType: B
+        - AttributeName: creationDate
           AttributeType: S
-        - AttributeName: last_modification_date
+        - AttributeName: lastModificationDate
           AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-        - AttributeName: creation_date
+        - AttributeName: title
+          KeyType: RANGE
+        - AttributeName: content
+          KeyType: RANGE
+        - AttributeName: done
+          KeyType: RANGE
+        - AttributeName: creationDate
+          KeyType: RANGE
+        - AttributeName: lastModificationDate
           KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 5
