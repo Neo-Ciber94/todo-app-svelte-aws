@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  backend
+
+  Sample SAM Template for backend
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: nodejs18.x
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+
+Resources:
+  # Get all todos
+  getTodos:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/handlers
+      Handler: getTodos.handler
+      
+      Architectures:
+      - x86_64
+      Events:
+        getTodosEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: get
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - getTodos.ts
+
+  # Create todo
+  createTodo:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/handlers
+      Handler: createTodo.handler
+      
+      Architectures:
+      - x86_64
+      Events:
+        createTodoEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: post
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - createTodo.ts
+
+  # Update todo
+  updateTodo:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/handlers
+      Handler: updateTodo.handler
+      
+      Architectures:
+      - x86_64
+      Events:
+        updateTodoEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: put
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - updateTodo.ts
+
+  # Delete todo
+  deleteTodo:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/handlers
+      Handler: deleteTodo.handler
+      
+      Architectures:
+      - x86_64
+      Events:
+        deleteTodoEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /{id}
+            Method: delete
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - deleteTodo.ts
+
+  # Toggle todo
+  toggleTodo:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/handlers
+      Handler: toggleTodo.handler
+      
+      Architectures:
+      - x86_64
+      Events:
+        toggleTodoEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /{id}/toggle
+            Method: put
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - toggleTodo.ts
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  TodoAppApi:
+    Description: A todo app with svelte and AWS
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todo-app-aws/"
+  # HelloWorldFunction:
+  #   Description: Hello World Lambda Function ARN
+  #   Value: !GetAtt HelloWorldFunction.Arn
+  # HelloWorldFunctionIamRole:
+  #   Description: Implicit IAM Role created for Hello World function
+  #   Value: !GetAtt HelloWorldFunctionRole.Arn
