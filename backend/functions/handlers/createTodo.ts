@@ -33,7 +33,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         lastModificationDate: now,
     };
 
-    const dynamoDB = new DynamoDB.DocumentClient();
+    const dynamoDB = new DynamoDB.DocumentClient({
+        endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
+    });
     const params: DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.TABLE_NAME,
         Item: newTodo,

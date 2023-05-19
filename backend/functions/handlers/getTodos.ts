@@ -5,7 +5,9 @@ import { DynamoDB } from 'aws-sdk';
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     console.log(event);
 
-    const dynamoDB = new DynamoDB.DocumentClient();
+    const dynamoDB = new DynamoDB.DocumentClient({
+        endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
+    });
     const params: DynamoDB.DocumentClient.ScanInput = {
         TableName: process.env.TABLE_NAME,
     };

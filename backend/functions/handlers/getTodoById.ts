@@ -13,7 +13,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
     }
 
-    const dynamoDB = new DynamoDB.DocumentClient();
+    const dynamoDB = new DynamoDB.DocumentClient({
+        endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
+    });
     const params: DynamoDB.DocumentClient.Get = {
         TableName: process.env.TABLE_NAME,
         Key: { id },
