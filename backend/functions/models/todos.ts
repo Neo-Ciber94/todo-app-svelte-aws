@@ -15,3 +15,9 @@ export const createTodoModel = z.object({
     title: z.string(),
     content: z.string().optional().nullable(),
 });
+
+export const updateTodoModel = z.object({
+    id: z.string(),
+    title: z.string(),
+    content: z.string().optional().nullable(),
+});

@@ -1,31 +1,31 @@
 import { jsonResponse } from '@/utils/responses';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
+import { dynamoDbClient } from '@/aws/dynamodb';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    console.log(event);
-
+    console.log(JSON.stringify(event, null, 2));
     const id = event.pathParameters?.id;
 
     if (id == null) {
-        return jsonResponse(404, {
-            message: 'Id was not specified',
-        });
+        return {
+            statusCode: 429,
+            body: JSON.stringify({
+                message: 'Path parameter not specified',
+            }),
+        };
     }
 
-    const dynamoDB = new DynamoDB.DocumentClient({
-        endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
-    });
-    const params: DynamoDB.DocumentClient.Get = {
-        TableName: process.env.TABLE_NAME,
-        Key: { id },
-    };
-
     try {
-        const result = await dynamoDB.get(params).promise();
+        const params: DynamoDB.DocumentClient.GetItemInput = {
+            Key: { id },
+            TableName: process.env.TABLE_NAME,
+        };
+
+        const result = await dynamoDbClient.get(params).promise();
 
         if (result.Item == null) {
-            return jsonResponse(404, { message: `todo with id '${id}' was not found` });
+            return jsonResponse(404, { message: 'Not found' });
         }
 
         return jsonResponse(200, result.Item);
