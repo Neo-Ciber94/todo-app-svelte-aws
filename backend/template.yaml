@@ -1,11 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  backend
-
-  Sample SAM Template for backend
+Description: A todo app using Svelte and AWS
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+Parameters:
+  Stage:
+    Type: String
+    Description: The application stage
+    Default: "prod"
+    AllowedValues:
+      - local
+      - dev
+      - prod
+
 Globals:
   Function:
     Timeout: 60
@@ -15,7 +23,7 @@ Globals:
     Environment:
       Variables:
         TABLE_NAME: todos
-
+        STAGE: !Ref Stage
   Api:
     TracingEnabled: true
 
@@ -190,13 +198,9 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
-        - AttributeName: creationDate
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-        - AttributeName: creationDate
-          KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5

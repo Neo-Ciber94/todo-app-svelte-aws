@@ -1,19 +1,17 @@
 import { jsonResponse } from '@/utils/responses';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
+import { dynamoDbClient } from '@/aws/dynamodb';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    console.log(event);
+    console.log(JSON.stringify(event, null, 2));
 
     try {
-        const dynamoDB = new DynamoDB.DocumentClient({
-            endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://host.docker.internal:8000' : undefined,
-        });
         const params: DynamoDB.DocumentClient.ScanInput = {
             TableName: process.env.TABLE_NAME,
         };
 
-        const result = await dynamoDB.scan(params).promise();
+        const result = await dynamoDbClient.scan(params).promise();
         return jsonResponse(200, result.Items);
     } catch (error) {
         console.log('An error occurred while reading the todos', error);

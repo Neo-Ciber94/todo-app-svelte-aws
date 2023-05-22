@@ -1,12 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
-import { createTodoModel } from '@/models/todos';
+import { createTodoModel, TodoModel } from '@/models/todos';
 import { parseEventBody } from '@/utils/parseEventBody';
 import { jsonResponse } from '@/utils/responses';
 import crypto from 'crypto';
+import { dynamoDbClient } from '@/aws/dynamodb';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    console.log(event);
+    console.log(JSON.stringify(event, null, 2));
 
     const json = parseEventBody(event);
 
@@ -22,35 +23,32 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return jsonResponse(400, input.error);
     }
 
-    const now = new Date().toUTCString();
+    const now = new Date().toISOString();
     const id = crypto.randomUUID();
-    const newTodo = {
+    const newTodo: TodoModel = {
         id,
         title: input.data.title,
-        content: input.data.content,
+        content: input.data.content ?? null,
         done: false,
         creationDate: now,
-        lastModificationDate: now,
+        lastModifiedDate: now,
     };
 
-    const dynamoDB = new DynamoDB.DocumentClient({
-        endpoint: process.env.AWS_SAM_LOCAL == 'true' ? 'http://localhost:8000' : undefined,
-    });
     const params: DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.TABLE_NAME,
         Item: newTodo,
     };
 
     try {
-        const result = await dynamoDB.put(params).promise();
-        //const apiUrl = process.env.API_URL;
+        const result = await dynamoDbClient.put(params).promise();
+        const apiUrl = getApiUrl(event);
+
         console.log('Record inserted successfully.');
+
         return {
             statusCode: 201,
             body: JSON.stringify(result.$response.data),
-            // headers: {
-            //     Location: `${apiUrl}/${id}`,
-            // },
+            headers: apiUrl == null ? undefined : { Location: `${apiUrl}/${id}` },
         };
     } catch (error) {
         console.error('Error inserting record:', error);
@@ -59,3 +57,15 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
     }
 };
+
+function getApiUrl(event: APIGatewayProxyEvent): string | undefined {
+    const host = event['headers']['Host'];
+    const stage = event['requestContext']['stage'];
+
+    if (host == null || stage == null) {
+        console.warn('Failed to get location url from event', event);
+        return undefined;
+    }
+
+    return `https://${host}/${stage}`;
+}
