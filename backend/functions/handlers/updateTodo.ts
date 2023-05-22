@@ -43,17 +43,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const params: DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.TABLE_NAME,
-        Item: updated,
+        Item: updated
     };
 
     try {
         const result = await dynamoDbClient.put(params).promise();
-        console.log('Record updated successfully.');
+        console.log('Record updated successfully.', JSON.stringify(result, null, 2));
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify(result.$response.data),
-        };
+        return jsonResponse(200, updated);
     } catch (error) {
         console.error('Error updating record:', error);
         return jsonResponse(500, {
