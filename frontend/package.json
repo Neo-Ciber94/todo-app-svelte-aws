@@ -9,11 +9,19 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
+  "dependencies": {
+    "shared": "file:../shared",
+    "svelte-icons": "^2.1.0"
+  },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
+    "@tailwindcss/forms": "^0.5.3",
     "@tsconfig/svelte": "^4.0.1",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.23",
     "svelte": "^3.57.0",
     "svelte-check": "^2.10.3",
+    "tailwindcss": "^3.3.2",
     "tslib": "^2.5.0",
     "typescript": "^5.0.2",
     "vite": "^4.3.2"
