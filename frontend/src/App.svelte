@@ -1,8 +1,34 @@
 <script lang="ts">
-  import TodoList from "./lib/TodoList.svelte";
+  import CreatePage from "./pages/CreatePage.svelte";
+  import EditPage from "./pages/EditPage.svelte";
+  import ListPage from "./pages/ListPage.svelte";
+  import { Router, Link, Route } from "svelte-routing";
+  import ViewPage from "./pages/ViewPage.svelte";
 </script>
 
-<TodoList />
+<Router url="/">
+  <nav>
+    <Link to="/">List</Link>
+    <Link to="/add">Create</Link>
+    <Link to="/edit/1">Edit</Link>
+    <Link to="/view/1">View</Link>
+  </nav>
+  
+  <div>
+    <!-- List todos -->
+    <Route path="/" component={ListPage} />
 
-<style>
-</style>
+    <!-- Create todo -->
+    <Route path="/add" component={CreatePage} />
+
+    <!-- Edit todo -->
+    <Route path="/edit/:id" let:params>
+      <EditPage todoId={params.id} />
+    </Route>
+
+    <!-- View todo -->
+    <Route path="/view/:id" let:params>
+      <ViewPage todoId={params.id} />
+    </Route>
+  </div>
+</Router>

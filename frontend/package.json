@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "shared": "file:../shared",
-    "svelte-icons": "^2.1.0"
+    "svelte-icons": "^2.1.0",
+    "svelte-routing": "^1.8.9",
+    "vite-tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
