@@ -1,11 +1,19 @@
 <script lang="ts">
   import TodoEditor from "@/lib/TodoEditor.svelte";
-  import type { TodoModel } from "shared/lib/todos";
+  import todoStore from "@/stores/todoStore";
+  import { updateTodoModel, type TodoModel } from "shared/lib/todos";
 
   export let todoId: string;
+  const todo = todoStore.getTodos().find((x) => x.id === todoId);
+
   const handleSubmit = (todo: Partial<TodoModel>) => {
-    console.log(todo);
+    console.log("Update", todo);
   };
 </script>
 
-<TodoEditor onSubmit={handleSubmit} submitLabel="Update" />
+<TodoEditor
+  {todo}
+  onSubmit={handleSubmit}
+  submitLabel="Update"
+  validator={updateTodoModel}
+/>

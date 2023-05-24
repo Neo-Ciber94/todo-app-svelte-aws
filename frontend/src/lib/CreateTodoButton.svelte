@@ -2,7 +2,7 @@
   import { navigate } from "svelte-routing";
 
   const handleClick = () => {
-    navigate("/add");
+    navigate("/new");
   };
 </script>
 

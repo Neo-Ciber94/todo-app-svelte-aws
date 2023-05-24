@@ -16,12 +16,14 @@ specifiers:
   typescript: ^5.0.2
   vite: ^4.3.2
   vite-tsconfig-paths: ^4.2.0
+  zod: ^3.21.4
 
 dependencies:
   shared: file:../shared
   svelte-icons: 2.1.0
   svelte-routing: 1.8.9
   vite-tsconfig-paths: 4.2.0_job646ijde25witpuo4hrnq2me
+  zod: 3.21.4
 
 devDependencies:
   '@sveltejs/vite-plugin-svelte': 2.2.0_svelte@3.59.1+vite@4.3.8

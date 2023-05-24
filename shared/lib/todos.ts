@@ -12,16 +12,16 @@ export const todoModel = z.object({
 export type TodoModel = z.infer<typeof todoModel>;
 
 export const createTodoModel = z.object({
-  title: z.string(),
-  content: z.string().optional().nullable(),
+  title: z.string().trim(),
+  content: z.string().trim().optional().nullable(),
 });
 
 export type CreateTodoModel = z.infer<typeof createTodoModel>;
 
 export const updateTodoModel = z.object({
-  id: z.string(),
-  title: z.string(),
-  content: z.string().optional().nullable(),
+  id: z.string().min(1, "id is required"),
+  title: z.string().trim(),
+  content: z.string().trim().optional().nullable(),
 });
 
 export type UpdateTodoModel = z.infer<typeof updateTodoModel>;

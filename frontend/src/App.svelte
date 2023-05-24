@@ -4,22 +4,18 @@
   import ListPage from "./pages/ListPage.svelte";
   import { Router, Link, Route } from "svelte-routing";
   import ViewPage from "./pages/ViewPage.svelte";
+  import NavBar from "./lib/NavBar.svelte";
 </script>
 
 <Router url="/">
-  <nav>
-    <Link to="/">List</Link>
-    <Link to="/add">Create</Link>
-    <Link to="/edit/1">Edit</Link>
-    <Link to="/view/1">View</Link>
-  </nav>
-  
-  <div>
+  <NavBar />
+
+  <div class="mt-[50px]">
     <!-- List todos -->
     <Route path="/" component={ListPage} />
 
     <!-- Create todo -->
-    <Route path="/add" component={CreatePage} />
+    <Route path="/new" component={CreatePage} />
 
     <!-- Edit todo -->
     <Route path="/edit/:id" let:params>
