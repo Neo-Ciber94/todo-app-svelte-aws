@@ -1,14 +1,73 @@
 <script lang="ts">
-  import TodoEditor from "@/lib/TodoEditor.svelte";
-  import { createTodoModel, type TodoModel } from "shared/lib/todos";
+  import FormErrors from "@/lib/FormErrors.svelte";
+  import { todoService } from "@/services";
+  import { createTodoModel, type CreateTodoModel } from "shared/lib/todos";
+  import { navigate } from "svelte-routing";
+  import { toast } from "@zerodevx/svelte-toast";
+  import { errorTheme } from "@/utils/toastThemes";
+  import { getErrorMessage } from "@/utils/getErrorMessage";
 
-  const handleSubmit = (todo: Partial<TodoModel>) => {
+  const todo: CreateTodoModel = {};
+  let issues: Zod.ZodIssue[] = [];
+
+  const handleCancel = () => {
+    navigate("/");
+  };
+
+  const handleSubmit = async () => {
     console.log("Create", todo);
+    const result = createTodoModel.safeParse(todo);
+
+    try {
+      if (result.success === true) {
+        await todoService.createTodo(result.data);
+      } else {
+        issues = result.error.issues;
+      }
+    } catch (err) {
+      toast.push({
+        msg: getErrorMessage(err) || "Something went wrong",
+        theme: errorTheme,
+      });
+    }
   };
 </script>
 
-<TodoEditor
-  onSubmit={handleSubmit}
-  submitLabel="Create"
-  validator={createTodoModel}
-/>
+<div class="w-11/12 md:w-[700px] m-4 flex flex-col mx-auto">
+  <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">
+    <div class="flex flex-col">
+      <input
+        name="title"
+        bind:value={todo.title}
+        class="form-input shadow-md rounded-md placeholder:italic"
+        placeholder="Todo title..."
+      />
+    </div>
+
+    <textarea
+      name="content"
+      bind:value={todo.content}
+      class="form-textarea shadow-md rounded-md placeholder:italic"
+      rows="4"
+      placeholder="What do you want to do?"
+    />
+
+    <FormErrors {issues} />
+
+    <div class="flex flex-row justify-end gap-2">
+      <button
+        type="button"
+        on:click={handleCancel}
+        class="px-8 py-2 rounded-md shadow text-white bg-neutral-900 hover:bg-black min-w-[120px]"
+      >
+        Back
+      </button>
+
+      <button
+        class="px-8 py-2 rounded-md shadow text-white bg-pink-500 hover:bg-pink-600 min-w-[120px]"
+      >
+        Create
+      </button>
+    </div>
+  </form>
+</div>

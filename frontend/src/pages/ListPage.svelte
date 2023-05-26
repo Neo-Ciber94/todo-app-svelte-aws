@@ -1,8 +1,20 @@
 <script lang="ts">
   import TodoList from "@/lib/TodoList.svelte";
-  import todoStore from "@/stores/todoStore";
+  import { todoService } from "@/services";
+  import { getErrorMessage } from "@/utils/getErrorMessage";
+  import { errorTheme } from "@/utils/toastThemes";
+  import { toast } from "@zerodevx/svelte-toast";
 
-  const todos = todoStore.getTodos();
+  const todoPromise = todoService.getTodos().catch((err) => {
+    console.error(err);
+    toast.push({
+      msg: getErrorMessage(err) || "Something went wrong",
+      theme: errorTheme,
+    });
+    return [];
+  });
 </script>
 
-<TodoList {todos} />
+{#await todoPromise then todos}
+  <TodoList {todos} />
+{/await}

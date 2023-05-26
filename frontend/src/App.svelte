@@ -2,9 +2,10 @@
   import CreatePage from "./pages/CreatePage.svelte";
   import EditPage from "./pages/EditPage.svelte";
   import ListPage from "./pages/ListPage.svelte";
-  import { Router, Link, Route } from "svelte-routing";
+  import { Router, Route } from "svelte-routing";
   import ViewPage from "./pages/ViewPage.svelte";
   import NavBar from "./lib/NavBar.svelte";
+  import { SvelteToast } from '@zerodevx/svelte-toast'
 </script>
 
 <Router url="/">
@@ -28,3 +29,4 @@
     </Route>
   </div>
 </Router>
+<SvelteToast />
