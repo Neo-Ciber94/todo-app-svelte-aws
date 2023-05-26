@@ -5,10 +5,10 @@
   import { Router, Route } from "svelte-routing";
   import ViewPage from "./pages/ViewPage.svelte";
   import NavBar from "./lib/NavBar.svelte";
-  import { SvelteToast } from '@zerodevx/svelte-toast'
+  import { SvelteToast } from "@zerodevx/svelte-toast";
 </script>
 
-<Router url="/">
+<Router>
   <NavBar />
 
   <div class="mt-[50px]">

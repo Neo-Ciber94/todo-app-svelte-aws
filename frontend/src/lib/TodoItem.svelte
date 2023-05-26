@@ -3,16 +3,43 @@
   import type { TodoModel } from "shared/lib/todos";
   import FaRegTrashAlt from "svelte-icons/fa/FaRegTrashAlt.svelte";
   import { Link } from "svelte-routing";
-  import { toast } from '@zerodevx/svelte-toast'
-  
+  import { toast } from "@zerodevx/svelte-toast";
+  import { getErrorMessage } from "@/utils/getErrorMessage";
+  import toastThemes from "@/utils/toastThemes";
+  import { createEventDispatcher } from "svelte";
+  import events from "@/utils/events";
+
+  const dispatch = createEventDispatcher();
+
   export let todo: TodoModel;
 
   const handleToggle = async () => {
-    await todoService.toggleTodo(todo.id);
+    try {
+      await todoService.toggleTodo(todo.id);
+    } catch (err) {
+      console.error(err);
+      toast.push({
+        msg: getErrorMessage(err) || "Something went wrong",
+        theme: toastThemes.error,
+      });
+    }
   };
 
   const handleDelete = async () => {
-    await todoService.deleteTodo(todo.id);
+    try {
+      await todoService.deleteTodo(todo.id);
+      window.dispatchEvent(new CustomEvent(events.revalidate));
+      toast.push({
+        msg: "Todo was deleted",
+        theme: toastThemes.success,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.push({
+        msg: getErrorMessage(err) || "Something went wrong",
+        theme: toastThemes.error,
+      });
+    }
   };
 </script>
 

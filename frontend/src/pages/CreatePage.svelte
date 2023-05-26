@@ -4,8 +4,9 @@
   import { createTodoModel, type CreateTodoModel } from "shared/lib/todos";
   import { navigate } from "svelte-routing";
   import { toast } from "@zerodevx/svelte-toast";
-  import { errorTheme } from "@/utils/toastThemes";
+  import toastThemes from "@/utils/toastThemes";
   import { getErrorMessage } from "@/utils/getErrorMessage";
+  import { faker } from "@faker-js/faker";
 
   const todo: CreateTodoModel = {};
   let issues: Zod.ZodIssue[] = [];
@@ -21,13 +22,15 @@
     try {
       if (result.success === true) {
         await todoService.createTodo(result.data);
+        navigate("/");
       } else {
         issues = result.error.issues;
       }
     } catch (err) {
+      console.error(err);
       toast.push({
         msg: getErrorMessage(err) || "Something went wrong",
-        theme: errorTheme,
+        theme: toastThemes.error,
       });
     }
   };
@@ -55,6 +58,22 @@
     <FormErrors {issues} />
 
     <div class="flex flex-row justify-end gap-2">
+      <button
+        type="button"
+        on:click={() => {
+          todo.title = faker.word.words({
+            count: {
+              min: 3,
+              max: 8,
+            },
+          });
+          todo.content = faker.lorem.paragraph({ min: 1, max: 3 });
+        }}
+        class="px-8 py-2 rounded-md shadow text-white bg-indigo-500 hover:bg-indigo-600 min-w-[120px]"
+      >
+        Generate
+      </button>
+
       <button
         type="button"
         on:click={handleCancel}

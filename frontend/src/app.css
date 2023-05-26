@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 html {
-  @apply h-full
+  @apply min-h-full
 }
 
 body {
-  @apply bg-gradient-to-br from-indigo-700 to-indigo-900 bg-no-repeat
+  @apply min-h-screen bg-gradient-to-br from-indigo-700 to-indigo-900 bg-no-repeat
 }

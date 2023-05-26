@@ -2,7 +2,6 @@ import type { TodoModel } from "shared/lib/todos";
 import { writable, get } from "svelte/store";
 import type { TodoService } from ".";
 import { faker } from "@faker-js/faker";
-import { onDestroy, onMount } from "svelte";
 import { wait } from "@/utils/wait";
 
 const TODO_KEY = "todos";
@@ -12,7 +11,7 @@ const { update, subscribe } = writer;
 try {
   const json = localStorage.getItem(TODO_KEY);
   const data = JSON.parse(json) as TodoModel[];
-  writer.set(data);
+  writer.set(data || []);
 } catch (error: any) {
   console.error(error);
 }
@@ -21,17 +20,6 @@ subscribe((todos) => {
   console.log("subscribe");
   localStorage.setItem(TODO_KEY, JSON.stringify(todos));
 });
-
-// let unsubscribe = () => {};
-// onMount(() => {
-//   unsubscribe = subscribe((todos) => {
-//     localStorage.setItem(TODO_KEY, JSON.stringify(todos));
-//   });
-// });
-
-// onDestroy(() => {
-//   unsubscribe();
-// });
 
 export class TodoStoreService implements TodoService {
   async getTodos(): Promise<

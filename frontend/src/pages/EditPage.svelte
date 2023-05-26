@@ -1,16 +1,26 @@
 <script lang="ts">
   import { navigate } from "svelte-routing";
-  import { updateTodoModel, type TodoModel } from "shared/lib/todos";
+  import {
+    updateTodoModel,
+    type TodoModel,
+    type UpdateTodoModel,
+  } from "shared/lib/todos";
   import { todoService } from "@/services";
   import FormErrors from "@/lib/FormErrors.svelte";
   import { toast } from "@zerodevx/svelte-toast";
-  import { errorTheme } from "@/utils/toastThemes";
+  import toastThemes from "@/utils/toastThemes";
   import { getErrorMessage } from "@/utils/getErrorMessage";
 
   export let todoId: string;
-  const todoPromise = todoService.getTodoById(todoId);
-  let todo: TodoModel | null = null;
+  let originalTodo: TodoModel | null = null;
+  let todo: UpdateTodoModel = {};
   let issues: Zod.ZodIssue[] = [];
+
+  const todoPromise = todoService.getTodoById(todoId).then((t) => {
+    originalTodo = Object.freeze({ ...t });
+    todo = { ...t };
+    return t;
+  });
 
   const handleCancel = () => {
     navigate("/");
@@ -19,17 +29,28 @@
   const handleSubmit = async () => {
     console.log("Update", todo);
     const result = updateTodoModel.safeParse(todo);
+    const wasChanged =
+      originalTodo.title != todo.title || originalTodo.content != todo.content;
 
     try {
       if (result.success === true) {
-        await todoService.updateTodo(result.data);
+        if (wasChanged) {
+          await todoService.updateTodo(result.data);
+          toast.push({
+            msg: "Todo was updated",
+            theme: toastThemes.success,
+          });
+        }
+
+        navigate("/");
       } else {
         issues = result.error.issues;
       }
     } catch (err) {
+      console.error(err);
       toast.push({
         msg: getErrorMessage(err) || "Something went wrong",
-        theme: errorTheme,
+        theme: toastThemes.error,
       });
     }
   };
@@ -37,9 +58,7 @@
 
 {#await todoPromise}
   <p>Loading...</p>
-{:then todoResult}
-  {(todo = todoResult)}
-
+{:then}
   <div class="w-11/12 md:w-[700px] m-4 flex flex-col mx-auto">
     <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">
       {#if todo.id}
