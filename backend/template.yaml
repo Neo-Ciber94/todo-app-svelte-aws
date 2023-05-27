@@ -28,6 +28,14 @@ Globals:
     TracingEnabled: true
 
 Resources:
+  TodoApi:
+      Type: AWS::Serverless::Api
+      Properties:
+        StageName: prod
+        Cors:
+          AllowOrigin: "'*'"
+          AllowHeaders: "'*'"
+
   # Get all todos
   getTodos:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -46,6 +54,7 @@ Resources:
           Properties:
             Path: /
             Method: get
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -54,6 +63,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - getTodos.ts
+    
 
   # Get by id
   getTodoById:
@@ -73,6 +83,7 @@ Resources:
           Properties:
             Path: /{id}
             Method: get
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -100,6 +111,7 @@ Resources:
           Properties:
             Path: /
             Method: post
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -127,6 +139,7 @@ Resources:
           Properties:
             Path: /
             Method: put
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -154,6 +167,7 @@ Resources:
           Properties:
             Path: /{id}
             Method: delete
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -181,6 +195,7 @@ Resources:
           Properties:
             Path: /toggle/{id}
             Method: put
+            RestApiId: !Ref TodoApi
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -209,6 +224,6 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  TodoAppApi:
+  TodoApi:
     Description: A todo app with svelte and AWS
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"

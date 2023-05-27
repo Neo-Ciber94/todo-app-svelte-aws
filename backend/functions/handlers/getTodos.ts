@@ -1,4 +1,4 @@
-import { jsonResponse } from '@/utils/responses';
+import respondWith from '@/utils/respondWith';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { dynamoDbClient } from '@/aws/dynamodb';
@@ -12,9 +12,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         };
 
         const result = await dynamoDbClient.scan(params).promise();
-        return jsonResponse(200, result.Items);
+        return respondWith.json(200, result.Items);
     } catch (error) {
         console.log('An error occurred while reading the todos', error);
-        return jsonResponse(500, { message: 'Failed to read todos' });
+        return respondWith.json(500, { message: 'Failed to read todos' });
     }
 };

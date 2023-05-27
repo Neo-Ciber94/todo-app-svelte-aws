@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { updateTodoModel, TodoModel } from '@/models/todos';
 import { parseEventBody } from '@/utils/parseEventBody';
-import { jsonResponse } from '@/utils/responses';
+import respondWith from '@/utils/respondWith';
 import { dynamoDbClient } from '@/aws/dynamodb';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -11,7 +11,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const json = parseEventBody(event);
 
     if (json == null) {
-        return jsonResponse(400, {
+        return respondWith.json(400, {
             message: 'Invalid body',
         });
     }
@@ -19,7 +19,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const input = updateTodoModel.safeParse(json);
 
     if (input.success === false) {
-        return jsonResponse(400, input.error);
+        return respondWith.json(400, input.error);
     }
 
     const record = await dynamoDbClient
@@ -30,7 +30,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         .promise();
 
     if (record.Item == null) {
-        return jsonResponse(404, { message: 'Not found' });
+        return respondWith.json(404, { message: 'Not found' });
     }
 
     const item = record.Item as unknown as TodoModel;
@@ -43,17 +43,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const params: DynamoDB.DocumentClient.PutItemInput = {
         TableName: process.env.TABLE_NAME,
-        Item: updated
+        Item: updated,
     };
 
     try {
         const result = await dynamoDbClient.put(params).promise();
         console.log('Record updated successfully.', JSON.stringify(result, null, 2));
 
-        return jsonResponse(200, updated);
+        return respondWith.json(200, updated);
     } catch (error) {
         console.error('Error updating record:', error);
-        return jsonResponse(500, {
+        return respondWith.json(500, {
             message: 'Failed to insert record',
         });
     }

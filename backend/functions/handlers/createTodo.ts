@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { createTodoModel, TodoModel } from '@/models/todos';
 import { parseEventBody } from '@/utils/parseEventBody';
-import { jsonResponse } from '@/utils/responses';
+import respondWith from '@/utils/respondWith';
 import crypto from 'crypto';
 import { dynamoDbClient } from '@/aws/dynamodb';
 
@@ -12,7 +12,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const json = parseEventBody(event);
 
     if (json == null) {
-        return jsonResponse(400, {
+        return respondWith.json(400, {
             message: 'Invalid body',
         });
     }
@@ -20,7 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const input = createTodoModel.safeParse(json);
 
     if (input.success === false) {
-        return jsonResponse(400, input.error);
+        return respondWith.json(400, input.error);
     }
 
     const now = new Date().toISOString();
@@ -43,21 +43,21 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const result = await dynamoDbClient.put(params).promise();
 
         if (result.$response.error) {
-            return jsonResponse(500, result.$response.error);
+            return respondWith.json(500, result.$response.error);
         }
 
         console.log('Record inserted successfully.');
 
         const apiUrl = getApiUrl(event);
 
-        return {
+        return respondWith({
             statusCode: 201,
             body: JSON.stringify(newTodo),
             headers: apiUrl == null ? undefined : { Location: `${apiUrl}/${id}` },
-        };
+        });
     } catch (error) {
         console.error('Error inserting record:', error);
-        return jsonResponse(500, {
+        return respondWith.json(500, {
             message: 'Failed to insert record',
         });
     }

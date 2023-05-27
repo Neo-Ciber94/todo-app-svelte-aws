@@ -4,6 +4,7 @@ import type {
   UpdateTodoModel,
 } from "shared/lib/todos";
 import { TodoStoreService } from "./todoStoreService";
+import { TodoApiService } from "./todoApiService";
 
 export interface TodoService {
   getTodos(): Promise<TodoModel[]>;
@@ -14,4 +15,5 @@ export interface TodoService {
   toggleTodo(id: string): Promise<void>;
 }
 
-export const todoService: TodoService = new TodoStoreService();
+// export const todoService: TodoService = new TodoStoreService();
+export const todoService: TodoService = new TodoApiService("http://localhost:3000")

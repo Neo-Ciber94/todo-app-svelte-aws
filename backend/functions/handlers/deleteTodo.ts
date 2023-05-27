@@ -1,4 +1,4 @@
-import { jsonResponse } from '@/utils/responses';
+import respondWith from '@/utils/respondWith';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { dynamoDbClient } from '@/aws/dynamodb';
@@ -8,12 +8,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const id = event.pathParameters?.id;
 
     if (id == null) {
-        return {
-            statusCode: 429,
-            body: JSON.stringify({
-                message: 'Path parameter not specified',
-            }),
-        };
+        return respondWith.json(429, {
+            message: 'Path parameter not specified',
+        });
     }
 
     try {
@@ -25,7 +22,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const toDelete = await dynamoDbClient.get(getParams).promise();
 
         if (toDelete.Item == null) {
-            return jsonResponse(404, { message: 'Not found' });
+            return respondWith.json(404, { message: 'Not found' });
         }
 
         const deleteParams: DynamoDB.DocumentClient.DeleteItemInput = {
@@ -36,12 +33,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const result = await dynamoDbClient.delete(deleteParams).promise();
 
         if (result.$response.error) {
-            return jsonResponse(500, result.$response.error);
+            return respondWith.json(500, result.$response.error);
         }
 
-        return jsonResponse(200, toDelete.Item);
+        return respondWith.json(200, toDelete.Item);
     } catch (error) {
         console.log('An error occurred while reading the todos', error);
-        return jsonResponse(500, { message: 'Failed to read todos' });
+        return respondWith.json(500, { message: 'Failed to read todos' });
     }
 };
