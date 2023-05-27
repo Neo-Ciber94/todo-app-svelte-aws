@@ -28,13 +28,67 @@ Globals:
     TracingEnabled: true
 
 Resources:
-  TodoApi:
-      Type: AWS::Serverless::Api
+  UserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-user-pool
+      UsernameAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      AutoVerifiedAttributes:
+        - email
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+
+  UserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-pool-client
+      GenerateSecret: false
+      UserPoolId: !Ref UserPool
+
+  IdentityPool:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      IdentityPoolName: !Sub ${AWS::StackName}-identity
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders: 
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  # S3 Bucket containing the frontend web page
+  WebAppBucket:
+      Type: 'AWS::S3::Bucket'
       Properties:
-        StageName: prod
-        Cors:
-          AllowOrigin: "'*'"
-          AllowHeaders: "'*'"
+        AccessControl: PublicRead
+        BucketName: !Sub app-${AWS::StackName}
+        MetricsConfigurations:
+          - Id: EntireBucket
+        WebsiteConfiguration:
+          IndexDocument: index.html
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Delete
+
+  TodoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'*'"
 
   # Get all todos
   getTodos:
@@ -63,7 +117,6 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - getTodos.ts
-    
 
   # Get by id
   getTodoById:
@@ -227,3 +280,8 @@ Outputs:
   TodoApi:
     Description: A todo app with svelte and AWS
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  WebsiteURL:
+    Value: !GetAtt
+      - WebAppBucket
+      - WebsiteURL
+    Description: URL for website hosted on S3

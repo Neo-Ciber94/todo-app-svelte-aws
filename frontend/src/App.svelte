@@ -5,6 +5,7 @@
   import { Router, Route } from "svelte-routing";
   import NavBar from "./lib/NavBar.svelte";
   import { SvelteToast } from "@zerodevx/svelte-toast";
+  import NotFound from "./pages/NotFound.svelte";
 </script>
 
 <Router>
@@ -21,6 +22,8 @@
     <Route path="/edit/:id" let:params>
       <EditPage todoId={params.id} />
     </Route>
+
+    <Route path="*" component={NotFound} />
   </div>
 </Router>
 <SvelteToast />
