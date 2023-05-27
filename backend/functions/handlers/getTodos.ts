@@ -2,7 +2,7 @@ import respondWith from '@/utils/respondWith';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { dynamoDbClient } from '@/aws/dynamodb';
-import { TodoModel } from '@/models/todos';
+import { TodoModel } from 'shared/lib/todos';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     console.log(JSON.stringify(event, null, 2));

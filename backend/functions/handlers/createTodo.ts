@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
-import { createTodoModel, TodoModel } from '@/models/todos';
+import { createTodoModel, TodoModel } from 'shared/lib/todos';
 import { parseEventBody } from '@/utils/parseEventBody';
 import respondWith from '@/utils/respondWith';
 import crypto from 'crypto';

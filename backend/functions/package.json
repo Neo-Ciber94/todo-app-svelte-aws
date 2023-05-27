@@ -1,5 +1,5 @@
 {
-  "name": "hello_world",
+  "name": "todo-app-svelte",
   "version": "1.0.0",
   "description": "hello world sample for NodeJS",
   "main": "app.js",
@@ -10,10 +10,12 @@
     "unit": "jest",
     "lint": "eslint '*.ts' --quiet --fix",
     "compile": "tsc",
-    "test": "npm run compile && npm run unit"
+    "test": "npm run compile && npm run unit",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "esbuild": "^0.14.14",
+    "shared": "link:..\\..\\shared",
     "zod": "^3.21.4"
   },
   "devDependencies": {
