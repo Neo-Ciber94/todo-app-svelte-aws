@@ -59,6 +59,15 @@ Resources:
       ClientName: !Sub ${AWS::StackName}-pool-client
       GenerateSecret: false
       UserPoolId: !Ref UserPool
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+      CallbackURLs:
+        - !GetAtt WebAppBucket.WebsiteURL
+      SupportedIdentityProviders:
+        - COGNITO
 
   IdentityPool:
     Type: "AWS::Cognito::IdentityPool"
@@ -68,6 +77,12 @@ Resources:
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
           ProviderName: !GetAtt UserPool.ProviderName
+
+  UserPoolDomain:
+    Type: "AWS::Cognito::UserPoolDomain"
+    Properties:
+      Domain: !Sub ${AWS::StackName}-${Stage}-user-pool-domain
+      UserPoolId: !Ref UserPool
 
   # S3 Bucket containing the frontend web page
   WebAppBucket:
@@ -106,6 +121,11 @@ Resources:
       Cors:
         AllowOrigin: "'*'"
         AllowHeaders: "'*'"
+      Auth:
+        DefaultAuthorizer: TodoAppCognitoAuthorizer
+        Authorizers:
+          TodoAppCognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
 
   # Get all todos
   getTodos:
@@ -302,3 +322,6 @@ Outputs:
       - WebAppBucket
       - WebsiteURL
     Description: URL for website hosted on S3
+  HostedUIUrl:
+    Description: "Hosted UI URL for user authentication"
+    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&scope=email+openid&redirect_uri=${WebAppBucket.WebsiteURL}"
