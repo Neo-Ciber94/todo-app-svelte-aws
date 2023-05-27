@@ -73,19 +73,33 @@ Resources:
   WebAppBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
+        BucketName: !Sub ${AWS::StackName}-webapp-bucket
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
         OwnershipControls:
           Rules:
             - ObjectOwnership: ObjectWriter
-        BucketName: !Sub ${AWS::StackName}-webapp-bucket
         WebsiteConfiguration:
           IndexDocument: index.html
       DeletionPolicy: Retain
       UpdateReplacePolicy: Delete
 
+  WebAppBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref WebAppBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${WebAppBucket}/*'
 
-  TodoApi:
+  TodoApiEndpoint:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref Stage
@@ -111,7 +125,7 @@ Resources:
           Properties:
             Path: /
             Method: get
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -139,7 +153,7 @@ Resources:
           Properties:
             Path: /{id}
             Method: get
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -167,7 +181,7 @@ Resources:
           Properties:
             Path: /
             Method: post
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -195,7 +209,7 @@ Resources:
           Properties:
             Path: /
             Method: put
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -223,7 +237,7 @@ Resources:
           Properties:
             Path: /{id}
             Method: delete
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -251,7 +265,7 @@ Resources:
           Properties:
             Path: /toggle/{id}
             Method: put
-            RestApiId: !Ref TodoApi
+            RestApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -280,9 +294,9 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  TodoApi:
+  TodoApiEndpoint:
     Description: A todo app with svelte and AWS
-    Value: !Sub "https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+    Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
   WebsiteURL:
     Value: !GetAtt
       - WebAppBucket

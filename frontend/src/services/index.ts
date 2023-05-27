@@ -16,4 +16,5 @@ export interface TodoService {
 }
 
 // export const todoService: TodoService = new TodoStoreService();
-export const todoService: TodoService = new TodoApiService("http://localhost:3000")
+//export const todoService: TodoService = new TodoApiService("http://localhost:3000")
+export const todoService: TodoService = new TodoApiService("https://sh6mo3fcza.execute-api.us-east-1.amazonaws.com/prod")
