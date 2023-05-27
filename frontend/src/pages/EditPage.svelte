@@ -10,6 +10,7 @@
   import { toast } from "@zerodevx/svelte-toast";
   import toastThemes from "@/utils/toastThemes";
   import { getErrorMessage } from "@/utils/getErrorMessage";
+  import Loading from "@/lib/Loading.svelte";
 
   export let todoId: string;
   let originalTodo: TodoModel | null = null;
@@ -57,7 +58,7 @@
 </script>
 
 {#await todoPromise}
-  <p>Loading...</p>
+  <Loading />
 {:then}
   <div class="w-11/12 md:w-[700px] m-4 flex flex-col mx-auto">
     <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">

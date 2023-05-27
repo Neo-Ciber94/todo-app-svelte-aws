@@ -6,6 +6,7 @@
   import { toast } from "@zerodevx/svelte-toast";
   import events from "@/utils/events";
   import type { TodoModel } from "shared/lib/todos";
+  import Loading from "@/lib/Loading.svelte";
 
   let todos: TodoModel[] = [];
 
@@ -32,7 +33,7 @@
 </script>
 
 {#await todoPromise}
-  <p>Loading...</p>
+  <Loading />
 {:then}
   <TodoList {todos} />
 {/await}
