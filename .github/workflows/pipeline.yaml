@@ -43,12 +43,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: true
+      # - uses: pnpm/action-setup@v2
+      #   name: Install pnpm
+      #   with:
+      #     version: 7
+      #     run_install: true
+      - run: npm install
       - run: npm i -g esbuild
 
   delete-feature:
