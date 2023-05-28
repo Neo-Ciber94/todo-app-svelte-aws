@@ -156,6 +156,7 @@ jobs:
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
           rm pnpm-lock.yaml
+          npm install
           npm vite build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
