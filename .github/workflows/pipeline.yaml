@@ -167,7 +167,7 @@ jobs:
         name: Upload web app
         with:
           command: cp
-          source: ./dist/
+          source: ./frontend/dist/
           destination: s3://${TESTING_STACK_NAME}-webapp-bucket
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -229,16 +229,23 @@ jobs:
         with:
           version: 7
 
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Build and deploy frontend
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
-          cd frontend && npm i -g vite && npx vite build
+          cd frontend
+          pnpm install
+          pnpm run build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         name: Upload web app
         with:
           command: cp
-          source: ./dist/
+          source: ./frontend/dist/
           destination: s3://${PROD_STACK_NAME}-webapp-bucket
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
