@@ -17,6 +17,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
     }
 
+    const userId = event.requestContext.authorizer?.claims?.sub;
+
+    if (userId == null || typeof userId !== 'string') {
+        return respondWith.json(403, {
+            message: 'User not found',
+        });
+    }
+
     const record = await dynamoDbClient
         .get({
             Key: { id },
@@ -24,11 +32,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         })
         .promise();
 
-    if (record.Item == null) {
+    const item = record.Item as TodoModel | null;
+
+    if (item == null || item.createdBy != userId) {
         return respondWith.json(404, { message: 'Not found' });
     }
 
-    const item = record.Item as unknown as TodoModel;
     const updated: TodoModel = {
         ...item,
         done: !Boolean(item.done),

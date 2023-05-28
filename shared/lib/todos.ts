@@ -5,6 +5,7 @@ export const todoModel = z.object({
   title: z.string(),
   content: z.string().nullable(),
   done: z.boolean().default(false),
+  createdBy: z.string(),
   creationDate: z.string().datetime(),
   lastModifiedDate: z.string().datetime(),
 });

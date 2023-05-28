@@ -23,6 +23,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return respondWith.json(400, input.error);
     }
 
+    const userId = event.requestContext.authorizer?.claims?.sub;
+
+    if (userId == null || typeof userId !== 'string') {
+        return respondWith.json(403, {
+            message: 'User not found',
+        });
+    }
+
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
     const newTodo: TodoModel = {
@@ -30,6 +38,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         title: input.data.title,
         content: input.data.content ?? null,
         done: false,
+        createdBy: userId,
         creationDate: now,
         lastModifiedDate: now,
     };

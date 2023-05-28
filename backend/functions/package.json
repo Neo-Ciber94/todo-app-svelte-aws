@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "aws-sdk": "^2.1386.0",
     "esbuild": "^0.14.14",
     "shared": "link:..\\..\\shared",
     "zod": "^3.21.4"

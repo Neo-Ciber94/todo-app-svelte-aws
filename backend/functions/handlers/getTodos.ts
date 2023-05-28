@@ -7,9 +7,18 @@ import { TodoModel } from 'shared/lib/todos';
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     console.log(JSON.stringify(event, null, 2));
 
+    const userId = event.requestContext.authorizer?.claims?.sub;
+
+    if (userId == null || typeof userId !== 'string') {
+        return respondWith.json(403, {
+            message: 'User not found',
+        });
+    }
+
     try {
         const params: DynamoDB.DocumentClient.ScanInput = {
             TableName: process.env.TABLE_NAME,
+            FilterExpression: `:createdBy = ${userId}`,
         };
 
         const result = await dynamoDbClient.scan(params).promise();

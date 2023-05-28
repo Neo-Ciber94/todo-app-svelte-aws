@@ -13,6 +13,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
     }
 
+    const userId = event.requestContext.authorizer?.claims?.sub;
+
+    if (userId == null || typeof userId !== 'string') {
+        return respondWith.json(403, {
+            message: 'User not found',
+        });
+    }
+
     try {
         const getParams: DynamoDB.DocumentClient.GetItemInput = {
             Key: { id },
@@ -27,6 +35,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const deleteParams: DynamoDB.DocumentClient.DeleteItemInput = {
             Key: { id },
+            ConditionExpression: `:createdBy = ${userId}`,
             TableName: process.env.TABLE_NAME,
         };
 
