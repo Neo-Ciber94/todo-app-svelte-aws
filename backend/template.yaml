@@ -13,6 +13,11 @@ Parameters:
       - local
       - dev
       - prod
+  AuthRedirectURL:
+    Type: String
+    Description: The url to redirect after login
+    Default: https://jwt.io
+    #- !GetAtt WebAppBucket.WebsiteURL
 
 Globals:
   Function:
@@ -31,7 +36,7 @@ Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
     Properties:
-      UserPoolName: !Sub ${AWS::StackName}-user-pool
+      UserPoolName: !Sub ${AWS::StackName}-${Stage}-user-pool
       UsernameAttributes:
         - email
       AdminCreateUserConfig:
@@ -56,23 +61,24 @@ Resources:
   UserPoolClient:
     Type: "AWS::Cognito::UserPoolClient"
     Properties:
-      ClientName: !Sub ${AWS::StackName}-pool-client
-      GenerateSecret: false
+      ClientName: !Sub ${AWS::StackName}-${Stage}-pool-client
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: True
       UserPoolId: !Ref UserPool
       AllowedOAuthFlows:
-        - code
+        - implicit
       AllowedOAuthScopes:
         - email
         - openid
       CallbackURLs:
-        - !GetAtt WebAppBucket.WebsiteURL
+        - !Ref AuthRedirectURL
       SupportedIdentityProviders:
         - COGNITO
 
   IdentityPool:
     Type: "AWS::Cognito::IdentityPool"
     Properties:
-      IdentityPoolName: !Sub ${AWS::StackName}-identity
+      IdentityPoolName: !Sub ${AWS::StackName}-${Stage}-identity
       AllowUnauthenticatedIdentities: true
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
@@ -81,14 +87,14 @@ Resources:
   UserPoolDomain:
     Type: "AWS::Cognito::UserPoolDomain"
     Properties:
-      Domain: !Sub ${AWS::StackName}-${Stage}-user-pool-domain
+      Domain: !Sub todo-app-svelte-domain-${Stage}
       UserPoolId: !Ref UserPool
 
   # S3 Bucket containing the frontend web page
   WebAppBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: !Sub ${AWS::StackName}-webapp-bucket
+        BucketName: !Sub ${AWS::StackName}-${Stage}-webapp-bucket
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false
@@ -129,7 +135,7 @@ Resources:
 
   # Get all todos
   getTodos:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ./functions/handlers
       Handler: getTodos.handler
@@ -141,7 +147,7 @@ Resources:
             TableName: todos
       Events:
         getTodosEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /
             Method: get
@@ -157,7 +163,7 @@ Resources:
 
   # Get by id
   getTodoById:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ./functions/handlers
       Handler: getTodoById.handler
@@ -169,7 +175,7 @@ Resources:
             TableName: todos
       Events:
         getTodoByIdEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /{id}
             Method: get
@@ -185,7 +191,7 @@ Resources:
 
   # Create todo
   createTodo:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: functions/handlers
       Handler: createTodo.handler
@@ -197,7 +203,7 @@ Resources:
             TableName: todos
       Events:
         createTodoEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /
             Method: post
@@ -213,7 +219,7 @@ Resources:
 
   # Update todo
   updateTodo:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: functions/handlers
       Handler: updateTodo.handler
@@ -225,7 +231,7 @@ Resources:
             TableName: todos
       Events:
         updateTodoEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /
             Method: put
@@ -241,7 +247,7 @@ Resources:
 
   # Delete todo
   deleteTodo:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: functions/handlers
       Handler: deleteTodo.handler
@@ -253,7 +259,7 @@ Resources:
             TableName: todos
       Events:
         deleteTodoEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /{id}
             Method: delete
@@ -269,7 +275,7 @@ Resources:
 
   # Toggle todo
   toggleTodo:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: functions/handlers
       Handler: toggleTodo.handler
@@ -281,7 +287,7 @@ Resources:
             TableName: todos
       Events:
         toggleTodoEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             Path: /toggle/{id}
             Method: put
@@ -317,11 +323,11 @@ Outputs:
   TodoApiEndpoint:
     Description: A todo app with svelte and AWS
     Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
-  WebsiteURL:
+  WebsiteBucketURL:
     Value: !GetAtt
       - WebAppBucket
       - WebsiteURL
     Description: URL for website hosted on S3
-  HostedUIUrl:
+  UserPoolDomainURL:
     Description: "Hosted UI URL for user authentication"
-    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=code&scope=email+openid&redirect_uri=${WebAppBucket.WebsiteURL}"
+    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri=${AuthRedirectURL}"
