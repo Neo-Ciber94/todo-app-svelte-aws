@@ -157,7 +157,7 @@ jobs:
           cd frontend
           rm pnpm-lock.yaml
           npm install
-          npm vite build
+          npm run build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         name: Upload web app
