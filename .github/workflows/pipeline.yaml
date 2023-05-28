@@ -151,13 +151,17 @@ jobs:
         with:
           version: 7
 
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Build and deploy frontend
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
-          rm pnpm-lock.yaml
-          npm install
-          npm run build
+          pnpm install
+          pnpm run build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         name: Upload web app
