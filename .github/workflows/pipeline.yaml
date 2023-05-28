@@ -155,7 +155,7 @@ jobs:
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
-          npm run build
+          npx vite build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         name: Upload web app
@@ -227,7 +227,7 @@ jobs:
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
-          npm run build
+          npx vite build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         name: Upload web app
