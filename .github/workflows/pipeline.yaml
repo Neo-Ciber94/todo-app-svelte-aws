@@ -158,7 +158,7 @@ jobs:
 
       - name: Build and deploy frontend
         run: |
-          export API_URL=${{ steps.get-api-url.outputs.api-url }}
+          export VITE_API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
           pnpm install
           pnpm run build
@@ -236,7 +236,7 @@ jobs:
 
       - name: Build and deploy frontend
         run: |
-          export API_URL=${{ steps.get-api-url.outputs.api-url }}
+          export VITE_API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
           pnpm install
           pnpm run build
