@@ -107,11 +107,22 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides Stage=dev
 
-      # - name: Build and deploy frontend
-      #   run: |
-      #     export API_URL=https://{API_URL}
-      #     cd frontend
-      #     npx run build
+      - name: Build and deploy frontend
+        run: |
+          export API_URL=https://{API_URL}
+          cd frontend
+          npx run build
+
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        name: Upload web app
+        with:
+          command: cp
+          source: ./dist/
+          destination: s3://${TESTING_STACK_NAME}-webapp-bucket
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          flags: --recursive
 
   build-and-package:
     if: github.ref == 'refs/heads/main'
@@ -213,6 +224,29 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides Stage=dev
 
+      - name: Get TodoApiEndpoint URL
+        id: get-api-url
+        run: |
+          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
+          echo "::set-output name=api-url::$OUTPUT"
+    
+      - name: Build and deploy frontend
+        run: |
+          export API_URL=${{ steps.get-api-url.outputs.api-url }}
+          cd frontend
+          npx run build
+
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        name: Upload web app
+        with:
+          command: cp
+          source: ./dist/
+          destination: s3://${TESTING_STACK_NAME}-webapp-bucket
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          flags: --recursive            
+
   deploy-prod:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-testing]
@@ -250,3 +284,26 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides Stage=prod
+
+      - name: Get TodoApiEndpoint URL
+        id: get-api-url
+        run: |
+          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
+          echo "::set-output name=api-url::$OUTPUT"
+    
+      - name: Build and deploy frontend
+        run: |
+          export API_URL=${{ steps.get-api-url.outputs.api-url }}
+          cd frontend
+          npx run build
+
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        name: Upload web app
+        with:
+          command: cp
+          source: ./dist/
+          destination: s3://${PROD_STACK_NAME}-webapp-bucket
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          flags: --recursive    
