@@ -35,6 +35,21 @@ jobs:
       - run: |
           # trigger the tests here
 
+  prepare-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: true
+      - run: npm i -g esbuild
+
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
     runs-on: ubuntu-latest
@@ -70,14 +85,13 @@ jobs:
     # https://github.com/actions/setup-python
     # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
     if: startsWith(github.ref, 'refs/heads/feature')
-    needs: [test]
+    needs: [test, prepare-npm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
-      - uses: ./.github/workflows/npm-action.yaml
       - run: sam build --template ${SAM_TEMPLATE}
 
       - name: Assume the testing pipeline user role
@@ -110,14 +124,13 @@ jobs:
 
   build-and-package:
     if: github.ref == 'refs/heads/main'
-    needs: [test]
+    needs: [test, prepare-npm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
-      - uses: ./.github/workflows/npm-action.yaml
       - name: Build resources
         run: sam build --template ${SAM_TEMPLATE}
 
