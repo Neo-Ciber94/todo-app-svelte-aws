@@ -35,7 +35,7 @@ Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
     Properties:
-      UserPoolName: !Sub ${AWS::StackName}-${Stage}-user-pool
+      UserPoolName: !Sub ${AWS::StackName}-user-pool
       UsernameAttributes:
         - email
       AdminCreateUserConfig:
@@ -60,7 +60,7 @@ Resources:
   UserPoolClient:
     Type: "AWS::Cognito::UserPoolClient"
     Properties:
-      ClientName: !Sub ${AWS::StackName}-${Stage}-pool-client
+      ClientName: !Sub ${AWS::StackName}-pool-client
       GenerateSecret: true
       AllowedOAuthFlowsUserPoolClient: True
       UserPoolId: !Ref UserPool
@@ -77,7 +77,7 @@ Resources:
   IdentityPool:
     Type: "AWS::Cognito::IdentityPool"
     Properties:
-      IdentityPoolName: !Sub ${AWS::StackName}-${Stage}-identity
+      IdentityPoolName: !Sub ${AWS::StackName}-identity
       AllowUnauthenticatedIdentities: true
       CognitoIdentityProviders: 
         - ClientId: !Ref UserPoolClient
@@ -86,14 +86,14 @@ Resources:
   UserPoolDomain:
     Type: "AWS::Cognito::UserPoolDomain"
     Properties:
-      Domain: !Sub todo-app-svelte-domain-${Stage}
+      Domain: !Sub todo-app-svelte-${Stage}-domain
       UserPoolId: !Ref UserPool
 
   # S3 Bucket containing the frontend web page
   WebAppBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: !Sub ${AWS::StackName}-${Stage}-webapp-bucket
+        BucketName: !Sub ${AWS::StackName}-webapp-bucket
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false
