@@ -150,6 +150,7 @@ jobs:
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
+          npm install
           npm run build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
@@ -217,6 +218,7 @@ jobs:
         run: |
           export API_URL=${{ steps.get-api-url.outputs.api-url }}
           cd frontend
+          npm install
           npm run build
 
       - uses: keithweaver/aws-s3-github-action@v1.0.0
