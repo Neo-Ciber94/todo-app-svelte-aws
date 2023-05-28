@@ -10,7 +10,6 @@ Parameters:
     Description: The application stage
     Default: "prod"
     AllowedValues:
-      - local
       - dev
       - prod
   AuthRedirectURL:
