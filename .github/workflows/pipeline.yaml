@@ -39,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: cd backend/functions
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -48,7 +47,7 @@ jobs:
       #   with:
       #     version: 7
       #     run_install: true
-      - run: npm install
+      - run: cd backend/functions && npm install
       - run: npm i -g esbuild
 
   delete-feature:
