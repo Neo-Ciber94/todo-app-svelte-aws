@@ -93,7 +93,7 @@ Resources:
   WebAppBucket:
       Type: 'AWS::S3::Bucket'
       Properties:
-        BucketName: !Sub ${AWS::StackName}-webapp-bucket
+        BucketName: !Sub ${AWS::StackName}-webapp-bucket-2
         PublicAccessBlockConfiguration:
           BlockPublicAcls: false
           BlockPublicPolicy: false
