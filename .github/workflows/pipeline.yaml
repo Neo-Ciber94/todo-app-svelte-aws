@@ -160,7 +160,7 @@ jobs:
         with:
           command: cp
           source: ./frontend/dist/
-          destination: s3://${{env.TESTING_STACK_NAME}}-webapp-bucket
+          destination: s3://${{env.TESTING_STACK_NAME}}-webapp-bucket-2
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
@@ -236,7 +236,7 @@ jobs:
         with:
           command: cp
           source: ./frontend/dist/
-          destination: s3://${{env.PROD_STACK_NAME}}-webapp-bucket
+          destination: s3://${{env.PROD_STACK_NAME}}-webapp-bucket-2
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
