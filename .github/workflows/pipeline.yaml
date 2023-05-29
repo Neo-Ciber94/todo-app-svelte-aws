@@ -136,7 +136,7 @@ jobs:
         id: get-api-url
         run: |
           OUTPUT=$(aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
-          echo "api-url<<$OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "::set-output name=api-url::$OUTPUT"
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
@@ -212,7 +212,7 @@ jobs:
         id: get-api-url
         run: |
           OUTPUT=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
-          echo "api-url<<$OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "::set-output name=api-url::$OUTPUT"
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
