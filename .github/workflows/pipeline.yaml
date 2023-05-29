@@ -13,15 +13,11 @@ env:
 
   # Development
   TESTING_STACK_NAME: todo-app-svelte-aws-dev
-  TESTING_PIPELINE_EXECUTION_ROLE: ${{ secrets.TESTING_PIPELINE_EXECUTION_ROLE }}
-  TESTING_CLOUDFORMATION_EXECUTION_ROLE: ${{ secrets.TESTING_CLOUDFORMATION_EXECUTION_ROLE }}
   TESTING_ARTIFACTS_BUCKET: ${{ secrets.TESTING_ARTIFACTS_BUCKET }}
   TESTING_REGION: ${{ secrets.AWS_REGION }}
 
   # Production
   PROD_STACK_NAME: todo-app-svelte-aws-prod
-  PROD_PIPELINE_EXECUTION_ROLE: ${{ secrets.PROD_PIPELINE_EXECUTION_ROLE }}
-  PROD_CLOUDFORMATION_EXECUTION_ROLE: ${{ secrets.PROD_CLOUDFORMATION_EXECUTION_ROLE }}
   PROD_ARTIFACTS_BUCKET: ${{ secrets.PROD_ARTIFACTS_BUCKET }}
   PROD_REGION: ${{ secrets.AWS_REGION }}
 
@@ -59,7 +55,6 @@ jobs:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
           role-session-name: testing-packaging
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -82,7 +77,6 @@ jobs:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.PROD_REGION }}
-          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
           role-session-name: prod-packaging
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -118,7 +112,6 @@ jobs:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
           role-session-name: testing-deployment
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -131,7 +124,6 @@ jobs:
             --region ${TESTING_REGION} \
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
-            --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides Stage=dev
 
       - name: Set AWS credentials
@@ -196,7 +188,6 @@ jobs:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.PROD_REGION }}
-          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
           role-session-name: prod-deployment
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -209,7 +200,6 @@ jobs:
             --region ${PROD_REGION} \
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
-            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides Stage=prod
 
       - name: Set AWS credentials
