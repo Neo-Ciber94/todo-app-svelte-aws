@@ -304,7 +304,7 @@ Resources:
   TodoDbTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
-      TableName: todos-${AWS::StackName}
+      TableName: !Sub todos-${AWS::StackName}
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
