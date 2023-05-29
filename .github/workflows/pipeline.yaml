@@ -7,19 +7,14 @@ on:
       - "dev"
 
 env:
-  PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   SAM_TEMPLATE: backend/template.yaml
 
   # Development
-  TESTING_STACK_NAME: todo-app-svelte-aws-dev
-  TESTING_ARTIFACTS_BUCKET: ${{ secrets.TESTING_ARTIFACTS_BUCKET }}
-  TESTING_REGION: ${{ secrets.AWS_REGION }}
-
-  # Production
-  PROD_STACK_NAME: todo-app-svelte-aws-prod
-  PROD_ARTIFACTS_BUCKET: ${{ secrets.PROD_ARTIFACTS_BUCKET }}
-  PROD_REGION: ${{ secrets.AWS_REGION }}
+  STACK_NAME: todo-app-svelte-aws-dev
+  ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
+  REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
   test:
@@ -49,51 +44,29 @@ jobs:
       - name: Build resources
         run: sam build --template ${SAM_TEMPLATE}
 
-      - name: Assume the testing pipeline user role
+      - name: Assume the pipeline user role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
+          aws-access-key-id: ${{ env.USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
           role-session-name: testing-packaging
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
-      - name: Upload artifacts to testing artifact buckets
+      - name: Upload artifacts to bucket
         run: |
           sam package \
-            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
-            --region ${TESTING_REGION} \
-            --output-template-file packaged-testing.yaml
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --region ${REGION} \
+            --output-template-file packaged-dev.yaml
 
       - uses: actions/upload-artifact@v3
         with:
-          name: packaged-testing.yaml
-          path: packaged-testing.yaml
+          name: packaged-dev.yaml
+          path: packaged-dev.yaml
 
-      - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.PROD_REGION }}
-          role-session-name: prod-packaging
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Upload artifacts to production artifact buckets
-        run: |
-          sam package \
-            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
-            --region ${PROD_REGION} \
-            --output-template-file packaged-prod.yaml
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: packaged-prod.yaml
-          path: packaged-prod.yaml
-
-  deploy-testing:
+  deploy:
     if: github.ref == 'refs/heads/main'
     needs: [build-and-package]
     runs-on: ubuntu-latest
@@ -104,25 +77,25 @@ jobs:
           use-installer: true
       - uses: actions/download-artifact@v3
         with:
-          name: packaged-testing.yaml
+          name: packaged-dev.yaml
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
+          aws-access-key-id: ${{ env.USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
           role-session-name: testing-deployment
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
       - name: Deploy to testing account
         run: |
-          sam deploy --stack-name ${TESTING_STACK_NAME} \
-            --template packaged-testing.yaml \
+          sam deploy --stack-name ${STACK_NAME} \
+            --template packaged-dev.yaml \
             --capabilities CAPABILITY_IAM \
-            --region ${TESTING_REGION} \
-            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --region ${REGION} \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --parameter-overrides Stage=dev
 
@@ -135,7 +108,7 @@ jobs:
       - name: Get TodoApiEndpoint URL
         id: get-api-url
         run: |
-          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
+          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
           echo "::set-output name=api-url::$OUTPUT"
 
       - uses: pnpm/action-setup@v2
@@ -160,83 +133,7 @@ jobs:
         with:
           command: cp
           source: ./frontend/dist/
-          destination: s3://${{env.TESTING_STACK_NAME}}-webapp-bucket-2
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          flags: --recursive
-
-  deploy-prod:
-    if: github.ref == 'refs/heads/main'
-    needs: [deploy-testing]
-    runs-on: ubuntu-latest
-    # Configure GitHub Action Environment to have a manual approval step before deployment to production
-    # https://docs.github.com/en/actions/reference/environments
-    # environment: <configured-environment>
-    steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-      - uses: actions/download-artifact@v3
-        with:
-          name: packaged-prod.yaml
-
-      - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.PROD_REGION }}
-          role-session-name: prod-deployment
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Deploy to production account
-        run: |
-          sam deploy --stack-name ${PROD_STACK_NAME} \
-            --template packaged-prod.yaml \
-            --capabilities CAPABILITY_IAM \
-            --region ${PROD_REGION} \
-            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
-            --no-fail-on-empty-changeset \
-            --parameter-overrides Stage=prod
-
-      - name: Set AWS credentials
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
-
-      - name: Get TodoApiEndpoint URL
-        id: get-api-url
-        run: |
-          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
-          echo "::set-output name=api-url::$OUTPUT"
-
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        with:
-          version: 7
-
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Build and deploy frontend
-        run: |
-          export VITE_API_URL=${{ steps.get-api-url.outputs.api-url }}
-          cd frontend
-          pnpm install
-          pnpm run build
-
-      - uses: keithweaver/aws-s3-github-action@v1.0.0
-        name: Upload web app
-        with:
-          command: cp
-          source: ./frontend/dist/
-          destination: s3://${{env.PROD_STACK_NAME}}-webapp-bucket-2
+          destination: s3://${{env.STACK_NAME}}-webapp-bucket-2
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
