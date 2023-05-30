@@ -6,24 +6,33 @@
   import NavBar from "./lib/NavBar.svelte";
   import { SvelteToast } from "@zerodevx/svelte-toast";
   import NotFound from "./pages/NotFound.svelte";
+  import Authorized from "./lib/Authorized.svelte";
+  import SignIn from "./lib/SignIn.svelte";
 </script>
 
 <Router>
   <NavBar />
 
   <div class="mt-[50px]">
-    <!-- List todos -->
-    <Route path="/" component={ListPage} />
+    <Authorized>
+      <!-- List todos -->
+      <Route path="/" component={ListPage} />
 
-    <!-- Create todo -->
-    <Route path="/new" component={CreatePage} />
+      <!-- Create todo -->
+      <Route path="/new" component={CreatePage} />
 
-    <!-- Edit todo -->
-    <Route path="/edit/:id" let:params>
-      <EditPage todoId={params.id} />
+      <!-- Edit todo -->
+      <Route path="/edit/:id" let:params>
+        <EditPage todoId={params.id} />
+      </Route>
+
+      <Route path="*" component={NotFound} />
+    </Authorized>
+
+    <!-- Login -->
+    <Route path="/login">
+      <SignIn />
     </Route>
-
-    <Route path="*" component={NotFound} />
   </div>
 </Router>
 <SvelteToast />

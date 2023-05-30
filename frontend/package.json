@@ -12,6 +12,7 @@
   "dependencies": {
     "@faker-js/faker": "^8.0.1",
     "@zerodevx/svelte-toast": "^0.9.3",
+    "amazon-cognito-identity-js": "^6.2.0",
     "shared": "file:../shared",
     "svelte-icons": "^2.1.0",
     "svelte-routing": "^1.8.9",
