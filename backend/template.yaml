@@ -61,7 +61,7 @@ Resources:
     Type: "AWS::Cognito::UserPoolClient"
     Properties:
       ClientName: !Sub ${AWS::StackName}-pool-client
-      GenerateSecret: true
+      GenerateSecret: false
       AllowedOAuthFlowsUserPoolClient: True
       UserPoolId: !Ref UserPool
       AllowedOAuthFlows:
