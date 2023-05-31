@@ -32,6 +32,11 @@ Globals:
         ORIGINS: https://d3gvffcylofzsw.cloudfront.net
   Api:
     TracingEnabled: true
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE,PATCH,OPTIONS'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "https://d3gvffcylofzsw.cloudfront.net"
+      AllowCredentials: true 
 
 Resources:
   UserPool:
