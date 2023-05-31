@@ -109,6 +109,7 @@ Resources:
           - ObjectOwnership: ObjectWriter
       WebsiteConfiguration:
         IndexDocument: index.html
+        ErrorDocument: index.html
     DeletionPolicy: Retain
     UpdateReplacePolicy: Delete
 
