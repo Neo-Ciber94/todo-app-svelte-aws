@@ -28,11 +28,13 @@ Globals:
       Variables:
         TABLE_NAME: todos
         STAGE: !Ref Stage
+        ORIGINS: !Join
+          - ""
+          - - "https://"
+            - !GetAtt TodoWebAppCloudFront.DomainName
+            - ",http://localhost:5679"
   Api:
     TracingEnabled: true
-    Cors:
-      AllowOrigins: '*'
-      AllowMethods: '*'
 
 Resources:
   UserPool:
@@ -85,7 +87,7 @@ Resources:
     Properties:
       IdentityPoolName: !Sub ${AWS::StackName}-identity
       AllowUnauthenticatedIdentities: true
-      CognitoIdentityProviders: 
+      CognitoIdentityProviders:
         - ClientId: !Ref UserPoolClient
           ProviderName: !GetAtt UserPool.ProviderName
 
@@ -97,61 +99,62 @@ Resources:
 
   # S3 Bucket containing the frontend web page
   WebAppBucket:
-      Type: 'AWS::S3::Bucket'
-      Properties:
-        BucketName: !Sub ${AWS::StackName}-webapp-bucket
-        PublicAccessBlockConfiguration:
-          BlockPublicAcls: false
-          BlockPublicPolicy: false
-          IgnorePublicAcls: false
-          RestrictPublicBuckets: false
-        OwnershipControls:
-          Rules:
-            - ObjectOwnership: ObjectWriter
-        WebsiteConfiguration:
-          IndexDocument: index.html
-      DeletionPolicy: Retain
-      UpdateReplacePolicy: Delete
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-webapp-bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      WebsiteConfiguration:
+        IndexDocument: index.html
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Delete
 
   WebAppBucketPolicy:
-    Type: 'AWS::S3::BucketPolicy'
+    Type: "AWS::S3::BucketPolicy"
     Properties:
       Bucket: !Ref WebAppBucket
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: !Sub 'arn:aws:s3:::${WebAppBucket}/*'
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${WebAppBucket}/*"
 
   # The Amazon CloudFront origin access identity
   CFOriginAccessIdentity:
-    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
     DependsOn:
       - WebAppBucket
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'access-identity-react-cors-spa-${AWS::StackName}'
+        Comment: !Sub "access-identity-react-cors-spa-${AWS::StackName}"
 
   TodoWebAppCloudFront:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        WebACLId: '' # We don't want the firewall to avoid extra costs
+        WebACLId: "" # We don't want the firewall to avoid extra costs
         Origins:
-        - DomainName: !GetAtt WebAppBucket.RegionalDomainName
-          Id: !Join ['', [!Ref 'WebAppBucket', '-', !Sub '${AWS::StackName}'] ]
-          S3OriginConfig:
-            OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CFOriginAccessIdentity}"
+          - DomainName: !GetAtt WebAppBucket.RegionalDomainName
+            Id: !Join ["", [!Ref "WebAppBucket", "-", !Sub "${AWS::StackName}"]]
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CFOriginAccessIdentity}"
         Enabled: true
         DefaultRootObject: index.html
         DefaultCacheBehavior:
           AllowedMethods:
-          - GET
-          - HEAD
-          - OPTIONS
-          TargetOriginId: !Join ['', [!Ref 'WebAppBucket', '-', !Sub '${AWS::StackName}'] ]
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId:
+            !Join ["", [!Ref "WebAppBucket", "-", !Sub "${AWS::StackName}"]]
           ViewerProtocolPolicy: redirect-to-https
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-caching-optimized
           OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # CORS-S3Origin: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-cors-s3
@@ -173,7 +176,7 @@ Resources:
 
   # Get all todos
   getTodos:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./functions/handlers
       Handler: getTodos.handler
@@ -185,7 +188,7 @@ Resources:
             TableName: todos
       Events:
         getTodosEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /
             Method: get
@@ -201,7 +204,7 @@ Resources:
 
   # Get by id
   getTodoById:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./functions/handlers
       Handler: getTodoById.handler
@@ -213,7 +216,7 @@ Resources:
             TableName: todos
       Events:
         getTodoByIdEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /{id}
             Method: get
@@ -229,7 +232,7 @@ Resources:
 
   # Create todo
   createTodo:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/handlers
       Handler: createTodo.handler
@@ -241,7 +244,7 @@ Resources:
             TableName: todos
       Events:
         createTodoEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /
             Method: post
@@ -257,7 +260,7 @@ Resources:
 
   # Update todo
   updateTodo:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/handlers
       Handler: updateTodo.handler
@@ -269,7 +272,7 @@ Resources:
             TableName: todos
       Events:
         updateTodoEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /
             Method: put
@@ -285,7 +288,7 @@ Resources:
 
   # Delete todo
   deleteTodo:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/handlers
       Handler: deleteTodo.handler
@@ -297,7 +300,7 @@ Resources:
             TableName: todos
       Events:
         deleteTodoEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /{id}
             Method: delete
@@ -313,7 +316,7 @@ Resources:
 
   # Toggle todo
   toggleTodo:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/handlers
       Handler: toggleTodo.handler
@@ -325,7 +328,7 @@ Resources:
             TableName: todos
       Events:
         toggleTodoEvent:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /toggle/{id}
             Method: put
@@ -382,4 +385,4 @@ Outputs:
 
   CloudFrontURL:
     Description: CloudFront URL for the web application
-    Value: !Join ['', ['https://', !GetAtt TodoWebAppCloudFront.DomainName]]
+    Value: !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]

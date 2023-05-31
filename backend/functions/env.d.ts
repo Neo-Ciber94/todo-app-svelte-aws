@@ -3,5 +3,6 @@ declare namespace NodeJS {
         TABLE_NAME: string;
         API_URL: string;
         STAGE: 'local' | 'dev' | 'prod';
+        ORIGINS: string;
     }
 }

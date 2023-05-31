@@ -15,13 +15,16 @@ interface RespondWithInterface {
 }
 
 const respondWith: RespondWithInterface = (init: ResponseWithInit) => {
+    const originsUrl = process.env.ORIGINS || '';
+
     return {
         ...init,
         headers: {
             ...init.headers,
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': originsUrl,
             'Access-Control-Allow-Methods': '*',
             'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Credentials': true,
         },
     };
 };
