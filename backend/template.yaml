@@ -163,7 +163,8 @@ Resources:
     Properties:
       StageName: !Ref Stage
       Cors:
-        AllowOrigin: https://d3gvffcylofzsw.cloudfront.net
+        AllowOrigin: 
+          - https://d3gvffcylofzsw.cloudfront.net
         AllowHeaders: "'*'"
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
