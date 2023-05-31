@@ -4,28 +4,30 @@
   import { onDestroy, onMount } from "svelte";
 
   const pathname = window.location.pathname;
-  let unsubscribe: () => void | null = null;
+  let unsubscribe: (() => void) | null = null;
 
-  if (auth.isAuthenticated() && pathname === "/login") {
-    const searchParams = new URLSearchParams(window.location.search);
-    const redirect = searchParams.get("redirect");
-    if (redirect && redirect.length > 0) {
-      const url = decodeURIComponent(redirect);
-      window.location.assign(url);
-    } else {
-      navigate("/");
+  setTimeout(() => {
+    if (!auth.isAuthenticated() && pathname !== "/login") {
+      const url = window.location.href;
+      navigate(`/login?redirect=${encodeURIComponent(url)}`);
     }
-  }
-
-  if (!auth.isAuthenticated() && pathname !== "/login") {
-    const url = window.location.href;
-    navigate(`/login?redirect=${encodeURIComponent(url)}`);
-  }
+  });
 
   onMount(() => {
     unsubscribe = auth.subscribe((session) => {
+      console.log(session);
       if (!session) {
         navigate("/login");
+      } else if (pathname === "/login") {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirect = searchParams.get("redirect");
+
+        if (redirect && redirect.length > 0) {
+          const url = decodeURIComponent(redirect);
+          window.location.assign(url);
+        } else {
+          navigate("/");
+        }
       }
     });
   });
@@ -37,6 +39,6 @@
   });
 </script>
 
-{#if auth.isAuthenticated()}
+{#if $auth}
   <slot />
 {/if}

@@ -23,7 +23,6 @@ function loadSession(): AuthSession | null {
     }
 
     const session = authSessionModel.parse(JSON.parse(rawSession));
-    console.log("Session loaded");
     return session;
 
   } catch (err) {
@@ -35,8 +34,11 @@ function loadSession(): AuthSession | null {
 const authSessionWritable = writable<AuthSession | null>(loadSession());
 
 authSessionWritable.subscribe((session) => {
-  console.log("session updated")
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+  if (session == null) {
+    localStorage.removeItem(TOKEN_KEY);
+  } else {
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+  }
 })
 
 const userPool = new AwsCognito.CognitoUserPool({
@@ -91,8 +93,13 @@ function isAuthenticated() {
   return get(authSessionWritable) != null;
 }
 
+function getToken() {
+  return get(authSessionWritable)?.tokenId
+}
+
 export default {
   isAuthenticated,
+  getToken,
   signIn,
   logOut,
   subscribe: authSessionWritable.subscribe

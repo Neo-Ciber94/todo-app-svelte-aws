@@ -8,12 +8,14 @@
   import NotFound from "./pages/NotFound.svelte";
   import Authorized from "./lib/Authorized.svelte";
   import SignIn from "./lib/SignIn.svelte";
+  import auth from "./utils/auth";
 </script>
 
 <Router>
   <NavBar />
 
   <div class="mt-[50px]">
+    <!-- Authorized routes -->
     <Authorized>
       <!-- List todos -->
       <Route path="/" component={ListPage} />
@@ -25,14 +27,17 @@
       <Route path="/edit/:id" let:params>
         <EditPage todoId={params.id} />
       </Route>
-
-      <Route path="*" component={NotFound} />
     </Authorized>
 
     <!-- Login -->
     <Route path="/login">
-      <SignIn />
+      {#if !auth.isAuthenticated()}
+        <SignIn />
+      {/if}
     </Route>
+
+    <!-- Not found -->
+    <Route path="*" component={NotFound} />
   </div>
 </Router>
 <SvelteToast />
