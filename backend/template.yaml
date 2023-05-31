@@ -163,23 +163,23 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref Stage
-      Cors:
-        AllowOrigin:
-          - https://d3gvffcylofzsw.cloudfront.net
-        AllowCredentials: true
-        AllowMethods: [OPTIONS, POST, GET, PUT, DELETE, PATCH]
-        AllowHeaders:
-          - Content-Type
-          - Accept
-          - Access-Control-Allow-Headers
-          - Access-Control-Request-Method
-          - Access-Control-Request-Headers
-          - Authorization
-      Auth:
-        DefaultAuthorizer: TodoAppCognitoAuthorizer
-        Authorizers:
-          TodoAppCognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
+      # Cors:
+      #   AllowOrigin:
+      #     - https://d3gvffcylofzsw.cloudfront.net
+      #   AllowCredentials: true
+      #   AllowMethods: [OPTIONS, POST, GET, PUT, DELETE, PATCH]
+      #   AllowHeaders:
+      #     - Content-Type
+      #     - Accept
+      #     - Access-Control-Allow-Headers
+      #     - Access-Control-Request-Method
+      #     - Access-Control-Request-Headers
+      #     - Authorization
+      # Auth:
+      #   DefaultAuthorizer: TodoAppCognitoAuthorizer
+      #   Authorizers:
+      #     TodoAppCognitoAuthorizer:
+      #       UserPoolArn: !GetAtt UserPool.Arn
 
   # Get all todos
   getTodos:
