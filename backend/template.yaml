@@ -30,6 +30,9 @@ Globals:
         STAGE: !Ref Stage
   Api:
     TracingEnabled: true
+    Cors:
+      AllowOrigins: '*'
+      AllowMethods: '*'
 
 Resources:
   UserPool:
