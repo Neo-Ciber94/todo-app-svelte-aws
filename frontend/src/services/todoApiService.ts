@@ -2,39 +2,39 @@ import auth from "@/utils/auth";
 import type { TodoService } from ".";
 import type { TodoModel } from "shared/lib/todos";
 
+const fetchUrl = (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response> => {
+  const token = auth.getToken();
+  const authHeaders = token == null ? undefined : {
+    "Authorization": `Bearer ${token}`,
+  };
+
+  return fetch(input, {
+    ...init,
+    credentials: 'include',
+    headers: {
+      ...init?.headers,
+      ...authHeaders,
+    }
+  })
+}
 
 export class TodoApiService implements TodoService {
   constructor(private readonly endpoint: string) { }
 
   async getTodos(): Promise<TodoModel[]> {
-    const token = auth.getToken();
-    const result = await fetch(this.endpoint, {
-      headers: {
-        "Authorization": token == null ? "" : "Bearer " + token
-      }
-    });
+    const result = await fetchUrl(this.endpoint);
     return result.json();
   }
 
   async getTodoById(id: string): Promise<TodoModel | null> {
-    const token = auth.getToken();
-    const result = await fetch(`${this.endpoint}/${id}`, {
-      headers: {
-        "Authorization": token == null ? "" : "Bearer " + token
-      }
-    });
+    const result = await fetchUrl(`${this.endpoint}/${id}`);
     return result.json();
   }
 
   async createTodo(data: { title: string; content?: string }): Promise<TodoModel> {
-    const token = auth.getToken();
-    const headers = {
-      "Authorization": token == null ? undefined : "Bearer " + token
-    };
-    const result = await fetch(this.endpoint, {
+    const result = await fetchUrl(this.endpoint, {
       method: "POST",
       body: JSON.stringify(data),
-      ...headers
     });
     return result.json();
   }
@@ -44,37 +44,22 @@ export class TodoApiService implements TodoService {
     title: string;
     content?: string;
   }): Promise<void> {
-    const token = auth.getToken();
-    const headers = {
-      "Authorization": token == null ? undefined : "Bearer " + token
-    };
-    const result = await fetch(this.endpoint, {
+    const result = await fetchUrl(this.endpoint, {
       method: "PUT",
       body: JSON.stringify(data),
-      ...headers
     });
 
     return result.json();
   }
 
   async deleteTodo(id: string): Promise<void> {
-    const token = auth.getToken();
-    const headers = {
-      "Authorization": token == null ? undefined : "Bearer " + token
-    };
-    const result = await fetch(`${this.endpoint}/${id}`, { method: "DELETE", ...headers });
+    const result = await fetchUrl(`${this.endpoint}/${id}`, { method: "DELETE" });
     return result.json();
   }
 
   async toggleTodo(id: string): Promise<void> {
-    const token = auth.getToken();
-    const headers = {
-      "Authorization": token == null ? undefined : "Bearer " + token
-    };
-
-    const result = await fetch(`${this.endpoint}/toggle/${id}`, {
+    const result = await fetchUrl(`${this.endpoint}/toggle/${id}`, {
       method: "PUT",
-      ...headers
     });
     return result.json();
   }
