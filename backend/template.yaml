@@ -164,9 +164,10 @@ Resources:
     Properties:
       StageName: !Ref Stage
       Cors:
-        AllowOrigin: 
+        AllowOrigin:
           - https://d3gvffcylofzsw.cloudfront.net
-        AllowHeaders: "'*'"
+        AllowCredentials: true
+        AllowMethods: [OPTIONS, POST, GET, PUT, DELETE, PATCH]
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
         Authorizers:

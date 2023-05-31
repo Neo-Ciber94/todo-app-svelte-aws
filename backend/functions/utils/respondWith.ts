@@ -22,7 +22,7 @@ const respondWith: RespondWithInterface = (init: ResponseWithInit) => {
         headers: {
             ...init.headers,
             'Access-Control-Allow-Origin': originsUrl,
-            'Access-Control-Allow-Methods': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE,PATCH',
             'Access-Control-Allow-Headers': '*',
             'Access-Control-Allow-Credentials': true,
         },
