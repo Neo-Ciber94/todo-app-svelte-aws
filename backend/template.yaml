@@ -122,6 +122,37 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub 'arn:aws:s3:::${WebAppBucket}/*'
 
+  # The Amazon CloudFront origin access identity
+  CFOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    DependsOn:
+      - WebAppBucket
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'access-identity-react-cors-spa-${AWS::StackName}'
+
+  TodoWebAppCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        WebACLId: '' # We don't want the firewall to avoid extra costs
+        Origins:
+        - DomainName: !GetAtt WebAppBucket.RegionalDomainName
+          Id: !Join ['', [!Ref 'WebAppBucket', '-', !Sub '${AWS::StackName}'] ]
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CFOriginAccessIdentity}"
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          TargetOriginId: !Join ['', [!Ref 'WebAppBucket', '-', !Sub '${AWS::StackName}'] ]
+          ViewerProtocolPolicy: redirect-to-https
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
   TodoApiEndpoint:
     Type: AWS::Serverless::Api
     Properties:
@@ -325,11 +356,25 @@ Outputs:
   TodoApiEndpoint:
     Description: A todo app with svelte and AWS
     Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+
   WebsiteBucketURL:
     Value: !GetAtt
       - WebAppBucket
       - WebsiteURL
     Description: URL for website hosted on S3
+
   UserPoolDomainURL:
     Description: "Hosted UI URL for user authentication"
     Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri=${AuthRedirectURL}"
+
+  CognitoUserPoolId:
+    Description: ID of the User Pool
+    Value: !Ref UserPool
+
+  CognitoUserPoolClientId:
+    Description: ID of the User Pool Client
+    Value: !Ref UserPoolClient
+
+  CloudFrontURL:
+    Description: CloudFront URL for the web application
+    Value: !Join ['', ['https://', !GetAtt TodoWebAppCloudFront.DomainName]]

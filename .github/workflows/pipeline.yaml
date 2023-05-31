@@ -105,11 +105,23 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
 
-      - name: Get TodoApiEndpoint URL
+      - name: Get Client API Url
         id: get-api-url
         run: |
-          OUTPUT=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
-          echo "::set-output name=api-url::$OUTPUT"
+          OUTPUT_API_URL=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
+          echo "::set-output name=api-url::$OUTPUT_API_URL"
+
+      - name: Get Cognito Client User Pool Id
+        id: get-user-pool-id
+        run: |
+          OUTPUT_USER_POOL=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolId`].OutputValue' --output text)
+          echo "::set-output name=user-pool-id::$OUTPUT_USER_POOL"
+
+      - name: Get Cognito Client Id
+        id: get-client-id
+        run: |
+          OUTPUT_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolClientId`].OutputValue' --output text)
+          echo "::set-output name=client-id::$OUTPUT_CLIENT_ID"
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
@@ -124,6 +136,8 @@ jobs:
       - name: Build and deploy frontend
         run: |
           export VITE_API_URL=${{ steps.get-api-url.outputs.api-url }}
+          export VITE_COGNITO_USER_POOL_ID=${{ steps.get-user-pool-id.outputs.user-pool-id }}
+          export VITE_COGNITO_CLIENT_ID=${{ steps.get-client-id.outputs.client-id }}
           cd frontend
           pnpm install
           pnpm run build
