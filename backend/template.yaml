@@ -32,11 +32,7 @@ Globals:
         ORIGINS: https://d1rmrlduejo4w0.cloudfront.net
   Api:
     TracingEnabled: true
-    Auth:
-      DefaultAuthorizer: TodoAppCognitoAuthorizer
-      Authorizers:
-        TodoAppCognitoAuthorizer:
-          UserPoolArn: !GetAtt UserPool.Arn
+
 Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"

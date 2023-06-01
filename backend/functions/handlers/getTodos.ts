@@ -7,7 +7,7 @@ import { TodoModel } from 'shared/lib/todos';
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     console.log(JSON.stringify(event, null, 2));
 
-    const userId = event.requestContext.authorizer?.claims?.sub;
+    const userId = event.requestContext.authorizer?.jwt?.claims?.sub;
 
     if (userId == null || typeof userId !== 'string') {
         return respondWith.json(403, {

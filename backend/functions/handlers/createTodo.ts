@@ -23,7 +23,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         return respondWith.json(400, input.error);
     }
 
-    const userId = event.requestContext.authorizer?.claims?.sub;
+    const userId = event.requestContext.authorizer?.jwt?.claims?.sub;
 
     if (userId == null || typeof userId !== 'string') {
         return respondWith.json(403, {
