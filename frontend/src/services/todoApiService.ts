@@ -6,6 +6,7 @@ const fetchUrl = (input: RequestInfo | URL, init?: RequestInit | undefined): Pro
   const token = auth.getToken();
   const authHeaders = token == null ? undefined : {
     "Authorization": `Bearer ${token}`,
+    "Content-type": "application/json"
   };
 
   return fetch(input, {
