@@ -32,7 +32,11 @@ Globals:
         ORIGINS: https://d3gvffcylofzsw.cloudfront.net
   Api:
     TracingEnabled: true
-
+    Auth:
+      DefaultAuthorizer: TodoAppCognitoAuthorizer
+      Authorizers:
+        TodoAppCognitoAuthorizer:
+          UserPoolArn: !GetAtt UserPool.Arn
 Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
@@ -160,14 +164,18 @@ Resources:
           CloudFrontDefaultCertificate: true
 
   TodoApiEndpoint:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::HttpApi
     Properties:
       StageName: !Ref Stage
-      Auth:
-        DefaultAuthorizer: TodoAppCognitoAuthorizer
-        Authorizers:
-          TodoAppCognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
+      CorsConfiguration:
+       AllowOrigins: 'https://d3gvffcylofzsw.cloudfront.net'
+       AllowMethods: [ GET, POST, PUT, PATCH, DELETE]
+       AllowCredentials: true
+      # Auth:
+      #   DefaultAuthorizer: TodoAppCognitoAuthorizer
+      #   Authorizers:
+      #     TodoAppCognitoAuthorizer:
+      #       UserPoolArn: !GetAtt UserPool.Arn
       # Cors:
       #   AllowOrigin:
       #     - https://d3gvffcylofzsw.cloudfront.net
@@ -195,11 +203,11 @@ Resources:
             TableName: todos
       Events:
         getTodosEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /
             Method: get
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -223,11 +231,11 @@ Resources:
             TableName: todos
       Events:
         getTodoByIdEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /{id}
             Method: get
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -251,11 +259,11 @@ Resources:
             TableName: todos
       Events:
         createTodoEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /
             Method: post
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -279,11 +287,11 @@ Resources:
             TableName: todos
       Events:
         updateTodoEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /
             Method: put
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -307,11 +315,11 @@ Resources:
             TableName: todos
       Events:
         deleteTodoEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /{id}
             Method: delete
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -335,11 +343,11 @@ Resources:
             TableName: todos
       Events:
         toggleTodoEvent:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /toggle/{id}
             Method: put
-            RestApiId: !Ref TodoApiEndpoint
+            ApiId: !Ref TodoApiEndpoint
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
