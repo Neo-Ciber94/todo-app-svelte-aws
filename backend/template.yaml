@@ -32,7 +32,11 @@ Globals:
         ORIGINS: https://d1rmrlduejo4w0.cloudfront.net
   Api:
     TracingEnabled: true
-
+    Cors:
+      AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
+      AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
+      AllowCredentials: true
+      
 Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
