@@ -171,6 +171,17 @@ Resources:
        AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
        AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
        AllowCredentials: true
+      Auth:
+        DefaultAuthorizer: TodoAppCognitoAuthorizer
+        Authorizers:
+          # TodoAppCognitoAuthorizer:
+          #   UserPoolArn: !GetAtt UserPool.Arn
+          TodoAppCognitoAuthorizer:
+              IdentitySource: "$request.header.Authorization"
+              JwtConfiguration:
+                issuer: !Join [ '', [ 'https://cognito-idp.', '${AWS::Region}', '.amazonaws.com/', !Ref UserPool ] ] 
+                audience: 
+                  - !Ref UserPoolClient
 
   # Get all todos
   getTodos:
