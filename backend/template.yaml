@@ -179,7 +179,7 @@ Resources:
           TodoAppCognitoAuthorizer:
               IdentitySource: "$request.header.Authorization"
               JwtConfiguration:
-                issuer: !Join [ '', [ 'https://cognito-idp.', '${AWS::Region}', '.amazonaws.com/', !Ref UserPool ] ] 
+                issuer: !Join [ '', [ 'https://cognito-idp.', !Sub '${AWS::Region}', '.amazonaws.com/', !Ref UserPool ] ] 
                 audience: 
                   - !Ref UserPoolClient
 
