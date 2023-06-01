@@ -29,7 +29,7 @@ Globals:
         TABLE_NAME: todos
         STAGE: !Ref Stage
         #ORIGINS: !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName, ",http://localhost:5679"]]
-        ORIGINS: https://d3gvffcylofzsw.cloudfront.net
+        ORIGINS: https://d1rmrlduejo4w0.cloudfront.net
   Api:
     TracingEnabled: true
     Auth:
@@ -168,7 +168,7 @@ Resources:
     Properties:
       StageName: !Ref Stage
       CorsConfiguration:
-       AllowOrigins: 'https://d3gvffcylofzsw.cloudfront.net'
+       AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
        AllowMethods: [ GET, POST, PUT, PATCH, DELETE]
        AllowCredentials: true
       # Auth:
@@ -178,7 +178,7 @@ Resources:
       #       UserPoolArn: !GetAtt UserPool.Arn
       # Cors:
       #   AllowOrigin:
-      #     - https://d3gvffcylofzsw.cloudfront.net
+      #     - https://d1rmrlduejo4w0.cloudfront.net
       #   AllowCredentials: true
       #   AllowMethods: [OPTIONS, POST, GET, PUT, DELETE, PATCH]
       #   AllowHeaders:
