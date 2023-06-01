@@ -169,25 +169,8 @@ Resources:
       StageName: !Ref Stage
       CorsConfiguration:
        AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
-       AllowMethods: [ GET, POST, PUT, PATCH, DELETE]
+       AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
        AllowCredentials: true
-      # Auth:
-      #   DefaultAuthorizer: TodoAppCognitoAuthorizer
-      #   Authorizers:
-      #     TodoAppCognitoAuthorizer:
-      #       UserPoolArn: !GetAtt UserPool.Arn
-      # Cors:
-      #   AllowOrigin:
-      #     - https://d1rmrlduejo4w0.cloudfront.net
-      #   AllowCredentials: true
-      #   AllowMethods: [OPTIONS, POST, GET, PUT, DELETE, PATCH]
-      #   AllowHeaders:
-      #     - Content-Type
-      #     - Accept
-      #     - Access-Control-Allow-Headers
-      #     - Access-Control-Request-Method
-      #     - Access-Control-Request-Headers
-      #     - Authorization
 
   # Get all todos
   getTodos:
