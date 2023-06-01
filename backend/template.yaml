@@ -32,13 +32,17 @@ Globals:
         ORIGINS: https://d3gvffcylofzsw.cloudfront.net
   Api:
     TracingEnabled: true
-    Cors:
-      AllowMethods: "'GET,POST,PUT,DELETE,PATCH,OPTIONS'"
-      AllowHeaders: "'*'"
-      AllowOrigin: 
-        - https://d3gvffcylofzsw.cloudfront.net
-      AllowCredentials: true 
-
+    # Cors:
+    #   AllowMethods: "'GET,POST,PUT,DELETE,PATCH,OPTIONS'"
+    #   AllowHeaders: "'*'"
+    #   AllowOrigin: 
+    #     - https://d3gvffcylofzsw.cloudfront.net
+    #   AllowCredentials: true 
+    Auth:
+      DefaultAuthorizer: TodoAppCognitoAuthorizer
+      Authorizers:
+        TodoAppCognitoAuthorizer:
+          UserPoolArn: !GetAtt UserPool.Arn
 Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
@@ -169,11 +173,11 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref Stage
-      Auth:
-        DefaultAuthorizer: TodoAppCognitoAuthorizer
-        Authorizers:
-          TodoAppCognitoAuthorizer:
-            UserPoolArn: !GetAtt UserPool.Arn
+      # Auth:
+      #   DefaultAuthorizer: TodoAppCognitoAuthorizer
+      #   Authorizers:
+      #     TodoAppCognitoAuthorizer:
+      #       UserPoolArn: !GetAtt UserPool.Arn
       # Cors:
       #   AllowOrigin:
       #     - https://d3gvffcylofzsw.cloudfront.net
