@@ -373,7 +373,7 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   TodoApiEndpoint:
     Description: A todo app with svelte and AWS
-    Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+    Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
 
   WebsiteBucketURL:
     Value: !GetAtt
