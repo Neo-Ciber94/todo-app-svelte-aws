@@ -21,7 +21,7 @@ const respondWith: RespondWithInterface = (init: ResponseWithInit) => {
         ...init,
         headers: {
             ...init.headers,
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': originsUrl,
             'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE,PATCH',
             'Access-Control-Allow-Headers': '*',
             'Access-Control-Allow-Credentials': true,

@@ -28,14 +28,9 @@ Globals:
       Variables:
         TABLE_NAME: todos
         STAGE: !Ref Stage
-        #ORIGINS: !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName, ",http://localhost:5679"]]
-        ORIGINS: https://d1rmrlduejo4w0.cloudfront.net
+        ORIGINS: !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName]]
   Api:
     TracingEnabled: true
-    # Cors:
-    #   AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
-    #   AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
-    #   AllowCredentials: true
 
 Resources:
   UserPool:
@@ -178,8 +173,6 @@ Resources:
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
         Authorizers:
-          # TodoAppCognitoAuthorizer:
-          #   UserPoolArn: !GetAtt UserPool.Arn
           TodoAppCognitoAuthorizer:
             IdentitySource: "$request.header.Authorization"
             JwtConfiguration:
