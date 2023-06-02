@@ -36,7 +36,7 @@ Globals:
     #   AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
     #   AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
     #   AllowCredentials: true
-      
+
 Resources:
   UserPool:
     Type: "AWS::Cognito::UserPool"
@@ -167,22 +167,34 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: !Ref Stage
-      # CorsConfiguration:
-      #  AllowOrigins: 
-      #   - 'https://d1rmrlduejo4w0.cloudfront.net'
-      #  AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
-      #  AllowCredentials: true
+      CorsConfiguration:
+        AllowOrigins:
+          - "https://d1rmrlduejo4w0.cloudfront.net"
+        AllowMethods: ["*"]
+        AllowCredentials: true
+        AllowHeaders: 
+          - 'content-type'
+          - 'authorization'
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
         Authorizers:
           # TodoAppCognitoAuthorizer:
           #   UserPoolArn: !GetAtt UserPool.Arn
           TodoAppCognitoAuthorizer:
-              IdentitySource: "$request.header.Authorization"
-              JwtConfiguration:
-                issuer: !Join [ '', [ 'https://cognito-idp.', !Sub '${AWS::Region}', '.amazonaws.com/', !Ref UserPool ] ] 
-                audience: 
-                  - !Ref UserPoolClient
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer:
+                !Join [
+                  "",
+                  [
+                    "https://cognito-idp.",
+                    !Sub "${AWS::Region}",
+                    ".amazonaws.com/",
+                    !Ref UserPool,
+                  ],
+                ]
+              audience:
+                - !Ref UserPoolClient
 
   # Get all todos
   getTodos:
