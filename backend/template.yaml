@@ -32,10 +32,10 @@ Globals:
         ORIGINS: https://d1rmrlduejo4w0.cloudfront.net
   Api:
     TracingEnabled: true
-    Cors:
-      AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
-      AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
-      AllowCredentials: true
+    # Cors:
+    #   AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
+    #   AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
+    #   AllowCredentials: true
       
 Resources:
   UserPool:
@@ -167,10 +167,11 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: !Ref Stage
-      CorsConfiguration:
-       AllowOrigins: 'https://d1rmrlduejo4w0.cloudfront.net'
-       AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
-       AllowCredentials: true
+      # CorsConfiguration:
+      #  AllowOrigins: 
+      #   - 'https://d1rmrlduejo4w0.cloudfront.net'
+      #  AllowMethods: [ OPTIONS, GET, POST, PUT, PATCH, DELETE]
+      #  AllowCredentials: true
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
         Authorizers:
