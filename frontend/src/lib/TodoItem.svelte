@@ -69,11 +69,13 @@
         </button>
       </div>
 
-      <hr class="border border-gray-400/20 my-1" />
       <div class="flex flex-row justify-between">
-        <p class={`py-2 ${todo.done ? "line-through opacity-30" : ""}`}>
-          {todo.content}
-        </p>
+        {#if todo.content}
+          <hr class="border border-gray-400/20 my-1" />
+          <p class={`w-full py-2 ${todo.done ? "line-through opacity-30" : ""}`}>
+            {todo.content}
+          </p>
+        {/if}
       </div>
     </div>
   </Link>
