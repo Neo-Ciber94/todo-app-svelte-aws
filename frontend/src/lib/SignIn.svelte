@@ -57,6 +57,7 @@
       id="password"
       name="password"
       type="password"
+      autocomplete="current-password"
       class="form-input rounded"
       bind:value={signIn.password}
     />
