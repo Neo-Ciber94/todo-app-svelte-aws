@@ -18,13 +18,17 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     try {
         const params: DynamoDB.DocumentClient.ScanInput = {
             TableName: process.env.TABLE_NAME,
-            FilterExpression: `:createdBy = ${userId}`,
+            FilterExpression: `:createdBy = #userId`,
+            ExpressionAttributeValues: {
+                '#userId': userId,
+            },
         };
 
         const result = await dynamoDbClient.scan(params).promise();
-        const items = (result.Items as TodoModel[]).sort(
-            (a, b) => new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime(),
-        );
+        const items = result.Items as TodoModel[];
+        // const items = (result.Items as TodoModel[]).sort(
+        //     (a, b) => new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime(),
+        // );
 
         return respondWith.json(200, items);
     } catch (error) {
