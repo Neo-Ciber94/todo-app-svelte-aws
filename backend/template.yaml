@@ -381,10 +381,17 @@ Outputs:
       - WebsiteURL
     Description: URL for website hosted on S3
 
+  CloudFrontURL:
+    Description: CloudFront URL for the web application
+    Value: !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
+
   UserPoolDomainURL:
     Description: "Hosted UI URL for user authentication"
-    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri=${AuthRedirectURL}"
-
+    Value: !Join
+      - ""
+      - - !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri="
+        - !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
+        
   CognitoUserPoolId:
     Description: ID of the User Pool
     Value: !Ref UserPool
@@ -392,7 +399,3 @@ Outputs:
   CognitoUserPoolClientId:
     Description: ID of the User Pool Client
     Value: !Ref UserPoolClient
-
-  CloudFrontURL:
-    Description: CloudFront URL for the web application
-    Value: !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
