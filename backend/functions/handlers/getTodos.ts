@@ -20,7 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             TableName: process.env.TABLE_NAME,
             FilterExpression: `:createdBy = #userId`,
             ExpressionAttributeValues: {
-                '#userId': userId,
+                '#userId': { S: userId },
             },
         };
 
