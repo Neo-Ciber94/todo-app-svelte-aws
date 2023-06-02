@@ -12,11 +12,6 @@ Parameters:
     AllowedValues:
       - dev
       - prod
-  AuthRedirectURL:
-    Type: String
-    Description: The url to redirect after login
-    Default: https://jwt.io
-    #- !GetAtt WebAppBucket.WebsiteURL
 
 Globals:
   Function:
@@ -71,7 +66,7 @@ Resources:
         - email
         - openid
       CallbackURLs:
-        - !Ref AuthRedirectURL
+        - !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName]]
       SupportedIdentityProviders:
         - COGNITO
       ExplicitAuthFlows:
