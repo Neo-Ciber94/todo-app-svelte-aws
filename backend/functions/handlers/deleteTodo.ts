@@ -35,10 +35,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         const deleteParams: DynamoDB.DocumentClient.DeleteItemInput = {
             Key: { id },
-            ConditionExpression: `:createdBy = #userId`,
             TableName: process.env.TABLE_NAME,
+            ConditionExpression: 'createdBy = :userId',
             ExpressionAttributeValues: {
-                '#userId': { S: userId },
+                ':userId': userId,
             },
         };
 

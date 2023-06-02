@@ -18,9 +18,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     try {
         const params: DynamoDB.DocumentClient.ScanInput = {
             TableName: process.env.TABLE_NAME,
-            FilterExpression: `:createdBy = #userId`,
+            FilterExpression: `createdBy = :userId`,
             ExpressionAttributeValues: {
-                '#userId': { S: userId },
+                ':userId': userId,
             },
         };
 
