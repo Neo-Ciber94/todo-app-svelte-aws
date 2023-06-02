@@ -165,11 +165,11 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - "https://d1rmrlduejo4w0.cloudfront.net"
-        AllowMethods: ["*"]
+        AllowMethods: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
         AllowCredentials: true
         AllowHeaders: 
-          - 'content-type'
           - 'authorization'
+          - 'content-type'
       Auth:
         DefaultAuthorizer: TodoAppCognitoAuthorizer
         Authorizers:
