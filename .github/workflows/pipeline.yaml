@@ -123,7 +123,7 @@ jobs:
           OUTPUT_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolClientId`].OutputValue' --output text)
           echo "::set-output name=client-id::$OUTPUT_CLIENT_ID"
 
-      - name: Get Cloudfront distributoin
+      - name: Get Cloudfront distribution
         id: get-cloudfront-distribution
         run: |
           OUTPUT_DISTRIBUTION_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CFDistribution`].OutputValue' --output text)
@@ -148,14 +148,22 @@ jobs:
           pnpm install
           pnpm run build
 
-      - name: Upload web app
-        uses: lbertenasco/s3-deploy@v1
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        name: Upload web app
+        with:
+          command: cp
+          source: ./frontend/dist/
+          destination: s3://${{env.STACK_NAME}}-webapp-bucket
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          flags: --recursive
+
+      - name: Invalidate Cloudfront cache
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-        with:
-          folder: ./frontend/dist/
-          bucket: s3://${{env.STACK_NAME}}-webapp-bucket
-          dist-id: "${{ steps.get-cloudfrond-distribution.outputs.cloudfront-distribution }}"
-          invalidation: /*
+        run: aws cloudfront create-invalidation \
+          --distribution-id ${{ steps.get-cloudfront-distribution.outputs.cloudfront-distribution }} \
+          --paths /*
