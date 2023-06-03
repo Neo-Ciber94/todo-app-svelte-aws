@@ -123,6 +123,12 @@ jobs:
           OUTPUT_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolClientId`].OutputValue' --output text)
           echo "::set-output name=client-id::$OUTPUT_CLIENT_ID"
 
+      - name: Get Cloudfront distributoin
+        id: get-cloudfront-distribution
+        run: |
+          OUTPUT_DISTRIBUTION_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CFDistribution`].OutputValue' --output text)
+          echo "::set-output name=cloudfront-distribution::$OUTPUT_DISTRIBUTION_ID"
+
       - uses: pnpm/action-setup@v2
         name: Install pnpm
         with:
@@ -142,13 +148,14 @@ jobs:
           pnpm install
           pnpm run build
 
-      - uses: keithweaver/aws-s3-github-action@v1.0.0
-        name: Upload web app
+      - name: Upload web app
+        uses: lbertenasco/s3-deploy@v1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         with:
-          command: cp
-          source: ./frontend/dist/
-          destination: s3://${{env.STACK_NAME}}-webapp-bucket
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          flags: --recursive
+          folder: ./frontend/dist/
+          bucket: s3://${{env.STACK_NAME}}-webapp-bucket
+          dist-id: ${{ steps.get-cloudfrond-distribution.outputs.cloudfront-distribution }}
+          invalidation: /*

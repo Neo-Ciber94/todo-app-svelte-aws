@@ -385,13 +385,17 @@ Outputs:
     Description: CloudFront URL for the web application
     Value: !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
 
+  CFDistribution:
+    Description: Id of the cloudfront distribution
+    Value: !Ref TodoWebAppCloudFront
+
   UserPoolDomainURL:
     Description: "Hosted UI URL for user authentication"
     Value: !Join
       - ""
       - - !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri="
         - !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
-        
+
   CognitoUserPoolId:
     Description: ID of the User Pool
     Value: !Ref UserPool
