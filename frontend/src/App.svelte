@@ -9,6 +9,7 @@
   import Authorized from "./lib/Authorized.svelte";
   import SignIn from "./lib/SignIn.svelte";
   import auth from "./utils/auth";
+  import SignUp from "./lib/SignUp.svelte";
 </script>
 
 <Router>
@@ -33,6 +34,13 @@
     <Route path="/login">
       {#if !auth.isAuthenticated()}
         <SignIn />
+      {/if}
+    </Route>
+
+    <!-- Register -->
+    <Route path="/signup">
+      {#if !auth.isAuthenticated()}
+        <SignUp />
       {/if}
     </Route>
 

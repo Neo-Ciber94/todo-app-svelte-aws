@@ -7,7 +7,7 @@
   let unsubscribe: (() => void) | null = null;
 
   setTimeout(() => {
-    if (!auth.isAuthenticated() && pathname !== "/login") {
+    if (!auth.isAuthenticated() && pathname !== "/login" && pathname !== "/signup" ) {
       const url = window.location.href;
       navigate(`/login?redirect=${encodeURIComponent(url)}`);
     }

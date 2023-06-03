@@ -8,7 +8,7 @@
   import { getErrorMessage } from "@/utils/getErrorMessage";
   import { faker } from "@faker-js/faker";
 
-  const todo: CreateTodoModel = {};
+  const todo: Partial<CreateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
 
   const handleCancel = () => {
@@ -16,7 +16,6 @@
   };
 
   const handleSubmit = async () => {
-    console.log("Create", todo);
     const result = createTodoModel.safeParse(todo);
 
     try {

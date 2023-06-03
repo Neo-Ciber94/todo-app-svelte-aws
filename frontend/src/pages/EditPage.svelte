@@ -14,12 +14,20 @@
 
   export let todoId: string;
   let originalTodo: TodoModel | null = null;
-  let todo: UpdateTodoModel = {};
+  let todo: Partial<UpdateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
 
   const todoPromise = todoService.getTodoById(todoId).then((t) => {
-    originalTodo = Object.freeze({ ...t });
-    todo = { ...t };
+    if (t) {
+      originalTodo = { ...t };
+      todo = { ...t };
+    } else {
+      toast.push({
+        msg: "Not Found",
+        theme: toastThemes.error,
+      });
+    }
+
     return t;
   });
 
@@ -28,10 +36,10 @@
   };
 
   const handleSubmit = async () => {
-    console.log("Update", todo);
     const result = updateTodoModel.safeParse(todo);
     const wasChanged =
-      originalTodo.title != todo.title || originalTodo.content != todo.content;
+      originalTodo?.title != todo.title ||
+      originalTodo?.content != todo.content;
 
     try {
       if (result.success === true) {

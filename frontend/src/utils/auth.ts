@@ -12,17 +12,25 @@ const authSessionModel = z.object({
 
 type AuthSession = z.infer<typeof authSessionModel>;
 
-const TOKEN_KEY = "auth-session";
+const AUTH_TOKEN = "auth-session";
 
 function loadSession(): AuthSession | null {
   try {
-    const rawSession = localStorage.getItem(TOKEN_KEY);
+    const rawSession = localStorage.getItem(AUTH_TOKEN);
 
     if (!rawSession) {
       return null;
     }
 
     const session = authSessionModel.parse(JSON.parse(rawSession));
+    const issuedAt = session.issuedAt.getTime();
+
+    if (issuedAt > session.expiration) {
+      console.warn("Session expired");
+      localStorage.removeItem(AUTH_TOKEN);
+      return null;
+    }
+
     return session;
 
   } catch (err) {
@@ -35,9 +43,9 @@ const authSessionWritable = writable<AuthSession | null>(loadSession());
 
 authSessionWritable.subscribe((session) => {
   if (session == null) {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN);
   } else {
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+    localStorage.setItem(AUTH_TOKEN, JSON.stringify(session));
   }
 })
 
@@ -85,6 +93,41 @@ async function signIn(username: string, password: string) {
   return session;
 }
 
+async function register(username: string, password: string) {
+  const result = await new Promise<AwsCognito.ISignUpResult | undefined>((resolve, reject) => userPool.signUp(username, password, [], [], (err, result) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(result)
+    }
+  }));
+
+  if (result == null) {
+    throw new Error("failed to register");
+  }
+
+  if (result.userConfirmed) {
+    console.log("user is confirmed");
+  }
+
+  return result.user;
+}
+
+export async function confirmUser(username: string, code: string) {
+  const cognitoUser = new AwsCognito.CognitoUser({
+    Username: username,
+    Pool: userPool
+  });
+
+  const result = await new Promise((resolve, reject) => cognitoUser.confirmRegistration(code, false, (err, result) => {
+    if (err) {
+      reject(err)
+    } else {
+      resolve(result)
+    }
+  }));
+}
+
 function logOut() {
   authSessionWritable.set(null);
 }
@@ -101,6 +144,8 @@ export default {
   isAuthenticated,
   getToken,
   signIn,
+  register,
+  confirmUser,
   logOut,
   subscribe: authSessionWritable.subscribe
 }

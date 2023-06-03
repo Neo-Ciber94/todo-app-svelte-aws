@@ -5,63 +5,43 @@ import { faker } from "@faker-js/faker";
 import { wait } from "@/utils/wait";
 
 const TODO_KEY = "todos";
-const writer = writable([]);
+const writer = writable<TodoModel[]>([]);
 const { update, subscribe } = writer;
 
 try {
   const json = localStorage.getItem(TODO_KEY);
-  const data = JSON.parse(json) as TodoModel[];
-  writer.set(data || []);
+  if (json) {
+    const data = JSON.parse(json) as TodoModel[];
+    writer.set(data || []);
+  }
 } catch (error: any) {
   console.error(error);
 }
 
 subscribe((todos) => {
-  console.log("subscribe");
   localStorage.setItem(TODO_KEY, JSON.stringify(todos));
 });
 
 export class TodoStoreService implements TodoService {
-  async getTodos(): Promise<
-    {
-      id?: string;
-      title?: string;
-      content?: string;
-      done?: boolean;
-      creationDate?: string;
-      lastModifiedDate?: string;
-    }[]
-  > {
+  async getTodos(): Promise<TodoModel[]> {
     await wait(Math.random() * 300);
     return get(writer);
   }
 
-  async getTodoById(id: string): Promise<{
-    id?: string;
-    title?: string;
-    content?: string;
-    done?: boolean;
-    creationDate?: string;
-    lastModifiedDate?: string;
-  }> {
+  async getTodoById(id: string): Promise<TodoModel | null> {
     await wait(Math.random() * 300);
     return get(writer).find((x) => x.id === id) ?? null;
   }
 
-  async createTodo(data: { title?: string; content?: string }): Promise<{
-    id?: string;
-    title?: string;
-    content?: string;
-    done?: boolean;
-    creationDate?: string;
-    lastModifiedDate?: string;
-  }> {
+  async createTodo(data: { title: string; content?: string }): Promise<TodoModel> {
     const now = new Date().toUTCString();
     const newTodo: TodoModel = {
-      ...data,
       id: faker.string.uuid(),
+      title: data.title,
+      content: data.content ?? null,
       done: false,
       creationDate: now,
+      createdBy: "fake-user-id",
       lastModifiedDate: now,
     };
     update((todos) => [...todos, newTodo]);
@@ -69,8 +49,8 @@ export class TodoStoreService implements TodoService {
   }
 
   async updateTodo(newTodo: {
-    id?: string;
-    title?: string;
+    id: string;
+    title: string;
     content?: string;
   }): Promise<void> {
     const now = new Date().toUTCString();
