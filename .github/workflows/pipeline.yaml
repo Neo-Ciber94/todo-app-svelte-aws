@@ -157,5 +157,5 @@ jobs:
         with:
           folder: ./frontend/dist/
           bucket: s3://${{env.STACK_NAME}}-webapp-bucket
-          dist-id: '${{ steps.get-cloudfrond-distribution.outputs.cloudfront-distribution }}'
+          dist-id: "${{ steps.get-cloudfrond-distribution.outputs.cloudfront-distribution }}"
           invalidation: /*
