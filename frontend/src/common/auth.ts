@@ -54,7 +54,6 @@ authSessionWritable.subscribe((session) => {
   }
 })
 
-
 async function signIn(username: string, password: string) {
   const cognitoUser = new AwsCognito.CognitoUser({
     Username: username,
@@ -161,10 +160,21 @@ async function refreshSession() {
   }));
 
   const refreshToken = session.getRefreshToken();
-  await new Promise((resolve, reject) => cognitoUser.refreshSession(refreshToken, (err, result) => {
+
+  await new Promise((resolve, reject) => cognitoUser.refreshSession(refreshToken, (err, result: AwsCognito.CognitoUserSession) => {
     if (err) {
       reject(err)
     } else {
+      const idToken = result.getIdToken();
+
+      authSessionWritable.set({
+        accessToken: result.getAccessToken().getJwtToken(),
+        refreshToken: result.getRefreshToken().getToken(),
+        tokenId: idToken.getJwtToken(),
+        expiration: idToken.getExpiration(),
+        issuedAt: new Date(idToken.getIssuedAt())
+      })
+      
       resolve(result)
     }
   }))

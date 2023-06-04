@@ -30,7 +30,9 @@
   const handleDelete = async () => {
     try {
       isDeleting = true;
+
       await todoService.deleteTodo(todo.id);
+
       window.dispatchEvent(new CustomEvent(events.revalidate));
       toast.success({
         message: "Todo was deleted",
@@ -44,19 +46,19 @@
       isDeleting = false;
     }
   };
+
+  const preventIfChanging = (e: Event) => {
+    if (isDeleting || isUpdating) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 </script>
 
 {#key todo.id}
-  <Link
-    to={routes.editTodo(todo.id)}
-    on:click={(e) => {
-      if (isDeleting || isUpdating) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }}
-    ><div
-      class="border border-gray-400/50 rounded-md shadow py-2 px-4 bg-white"
+  <Link to={routes.editTodo(todo.id)} on:click={preventIfChanging}>
+    <div
+      class={`border border-gray-400/50 rounded-md shadow py-2 px-4 bg-white`}
     >
       <div class="text-gray-800 flex flex-row justify-between items-center">
         <div class="flex flex-row items-center">

@@ -1,9 +1,14 @@
 import auth from "@/common/auth";
 import { getErrorMessage } from "./getErrorMessage";
-import { navigate } from "svelte-routing";
-import { routes } from "./routes";
+
+const MAX_RETRY = 1;
 
 const makeRequest = async (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response> => {
+    const res = await makeRequestWithRetry(0, input, init);
+    return res;
+}
+
+async function makeRequestWithRetry(retryCount: number, input: RequestInfo | URL, init?: RequestInit | undefined) {
     const token = auth.getToken();
     const headers = token == null ? undefined : {
         "Authorization": `Bearer ${token}`,
@@ -20,8 +25,12 @@ const makeRequest = async (input: RequestInfo | URL, init?: RequestInit | undefi
     });
 
     if (!response.ok) {
+        // We only retry on 401 errors
         if (response.status === 401) {
-            navigate(routes.login);
+            if (retryCount < MAX_RETRY) {
+                await auth.refreshSession()
+                return makeRequestWithRetry(retryCount + 1, input, response)
+            }
         }
 
         let error: string | null;
