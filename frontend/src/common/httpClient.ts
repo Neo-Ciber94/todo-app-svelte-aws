@@ -27,6 +27,7 @@ async function makeRequestWithRetry(retryCount: number, input: RequestInfo | URL
     if (!response.ok) {
         // We only retry on 401 errors
         if (response.status === 401) {
+            console.log(response.statusText, "Retrying...");
             if (retryCount < MAX_RETRY) {
                 await auth.refreshSession()
                 return makeRequestWithRetry(retryCount + 1, input, response)
