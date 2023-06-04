@@ -14,7 +14,22 @@ type AuthSession = z.infer<typeof authSessionModel>;
 
 const AUTH_TOKEN = "auth-session";
 
+const userPool = new AwsCognito.CognitoUserPool({
+  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID
+});
+
 function loadSession(): AuthSession | null {
+  const user = userPool.getCurrentUser();
+
+  if (user) {
+    user.getSession((err, session: AwsCognito.CognitoUserSession) => {
+      console.log(session);
+
+    })
+  }
+
+
   try {
     const rawSession = localStorage.getItem(AUTH_TOKEN);
 
@@ -49,10 +64,6 @@ authSessionWritable.subscribe((session) => {
   }
 })
 
-const userPool = new AwsCognito.CognitoUserPool({
-  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
-  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID
-});
 
 async function signIn(username: string, password: string) {
   const cognitoUser = new AwsCognito.CognitoUser({
@@ -143,7 +154,39 @@ async function resendCode(username: string) {
   }));
 }
 
+async function refreshSession() {
+  const cognitoUser = userPool.getCurrentUser();
+
+  if (cognitoUser == null) {
+    console.warn("no session found")
+    return;
+  }
+
+  const session = await new Promise<AwsCognito.CognitoUserSession>((resolve, reject) => cognitoUser.getSession((err, session) => {
+    if (err) {
+      reject(err)
+    } else {
+      resolve(session)
+    }
+  }));
+
+  const refreshToken = session.getRefreshToken();
+  await new Promise((resolve, reject) => cognitoUser.refreshSession(refreshToken, (err, result) => {
+    if (err) {
+      reject(err)
+    } else {
+      resolve(result)
+    }
+  }))
+}
+
 function logOut() {
+  const cognitoUser = userPool.getCurrentUser();
+
+  if (cognitoUser) {
+    cognitoUser.signOut();
+  }
+
   authSessionWritable.set(null);
 }
 
@@ -162,6 +205,7 @@ export default {
   register,
   confirmUser,
   resendCode,
+  refreshSession,
   logOut,
   subscribe: authSessionWritable.subscribe
 }
