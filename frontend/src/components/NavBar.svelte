@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import { Link } from "svelte-routing";
   import { globalHistory } from "svelte-routing/src/history";
-  import auth from "@/utils/auth";
+  import auth from "@/common/auth";
 
   let pathname = window.location.pathname;
   let unsubscribe = () => {};

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import FormErrors from "@/lib/FormErrors.svelte";
+  import FormErrors from "@/components/FormErrors.svelte";
   import { todoService } from "@/services";
   import { createTodoModel, type CreateTodoModel } from "shared/lib/todos";
   import { navigate } from "svelte-routing";

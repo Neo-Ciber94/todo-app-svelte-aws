@@ -1,12 +1,12 @@
 <script lang="ts">
-  import TodoList from "@/lib/TodoList.svelte";
+  import TodoList from "@/components/TodoList.svelte";
   import { todoService } from "@/services";
   import { getErrorMessage } from "@/common/getErrorMessage";
   import toastThemes from "@/common/toastThemes";
   import { toast } from "@zerodevx/svelte-toast";
   import events from "@/common/events";
   import type { TodoModel } from "shared/lib/todos";
-  import Loading from "@/lib/Loading.svelte";
+  import Loading from "@/components/Loading.svelte";
 
   let todos: TodoModel[] = [];
 

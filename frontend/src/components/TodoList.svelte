@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { TodoModel } from "shared/lib/todos";
-  import TodoItem from "@/lib/TodoItem.svelte";
+  import TodoItem from "@/components/TodoItem.svelte";
   import CreateTodoButton from "./CreateTodoButton.svelte";
 
   export let todos: TodoModel[] = [];

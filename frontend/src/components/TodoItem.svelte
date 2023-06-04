@@ -4,9 +4,9 @@
   import FaRegTrashAlt from "svelte-icons/fa/FaRegTrashAlt.svelte";
   import { Link } from "svelte-routing";
   import { toast } from "@zerodevx/svelte-toast";
-  import { getErrorMessage } from "@/utils/getErrorMessage";
-  import toastThemes from "@/utils/toastThemes";
-  import events from "@/utils/events";
+  import { getErrorMessage } from "@/common/getErrorMessage";
+  import toastThemes from "@/common/toastThemes";
+  import events from "@/common/events";
   import { fade, fly } from "svelte/transition";
 
   export let todo: TodoModel;
@@ -72,7 +72,9 @@
       <div class="flex flex-row justify-between">
         {#if todo.content}
           <hr class="border border-gray-400/20 my-1" />
-          <p class={`w-full py-2 ${todo.done ? "line-through opacity-30" : ""}`}>
+          <p
+            class={`w-full py-2 ${todo.done ? "line-through opacity-30" : ""}`}
+          >
             {todo.content}
           </p>
         {/if}

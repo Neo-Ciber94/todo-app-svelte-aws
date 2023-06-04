@@ -1,31 +1,42 @@
 <script lang="ts">
   import { navigate } from "svelte-routing";
   import auth from "@/common/auth";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
+  import { routes } from "@/common/routes";
+
+  let unsubscribe: () => void = () => {};
 
   onMount(() => {
-    const pathname = window.location.pathname;
-    const isAuthenticated = auth.isAuthenticated();
+    unsubscribe = auth.subscribe((session) => {
+      const isAuthenticated = session != null;
+      const pathname = window.location.pathname;
 
-    console.log({ isAuthenticated });
+      if (isAuthenticated) {
+        return;
+      }
 
-    if (!isAuthenticated) {
       if (
-        pathname == "/login" ||
-        pathname == "/signup" ||
-        pathname == "/confirm_email"
+        pathname == routes.login ||
+        pathname == routes.signup ||
+        pathname == routes.confirmEmail
       ) {
         return;
       }
 
       setTimeout(() => {
         if (pathname == "/") {
-          navigate("/login");
+          navigate(routes.login);
         } else {
           const redirect = encodeURIComponent(window.location.href);
-          navigate(`/login?redirect=${redirect}`);
+          navigate(`${routes.login}?redirect=${redirect}`);
         }
       });
+    });
+  });
+
+  onDestroy(() => {
+    if (unsubscribe) {
+      unsubscribe();
     }
   });
 </script>

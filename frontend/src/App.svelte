@@ -1,9 +1,9 @@
 <script lang="ts">
-  import CreatePage from "./pages/CreatePage.svelte";
-  import EditPage from "./pages/EditPage.svelte";
-  import ListPage from "./pages/ListPage.svelte";
+  import CreatePage from "@/pages/CreatePage.svelte";
+  import EditPage from "@/pages/EditPage.svelte";
+  import ListPage from "@/pages/ListPage.svelte";
   import { Router, Route } from "svelte-routing";
-  import NavBar from "./lib/NavBar.svelte";
+  import NavBar from "@/components/NavBar.svelte";
   import { SvelteToast } from "@zerodevx/svelte-toast";
   import NotFound from "@/pages/NotFound.svelte";
   import Authorized from "@/components/Authorized.svelte";
@@ -11,6 +11,7 @@
   import SignUp from "@/components/SignUp.svelte";
   import Login from "@/components/Login.svelte";
   import ConfirmEmail from "@/components/ConfirmEmail.svelte";
+  import { routes } from "./common/routes";
 </script>
 
 <Router>
@@ -23,31 +24,31 @@
       <Route path="/" component={ListPage} />
 
       <!-- Create todo -->
-      <Route path="/new" component={CreatePage} />
+      <Route path={routes.newTodo} component={CreatePage} />
 
       <!-- Edit todo -->
-      <Route path="/edit/:id" let:params>
+      <Route path={routes.editTodo} let:params>
         <EditPage todoId={params.id} />
       </Route>
     </Authorized>
 
     <!-- Login -->
-    <Route path="/login">
-      {#if !auth.isAuthenticated()}
+    <Route path={routes.login}>
+      {#if !$auth}
         <Login />
       {/if}
     </Route>
 
     <!-- Register -->
-    <Route path="/signup">
-      {#if !auth.isAuthenticated()}
+    <Route path={routes.signup}>
+      {#if !$auth}
         <SignUp />
       {/if}
     </Route>
 
-    <!-- Confirm Code -->
-    <Route path="/confirm_email">
-      {#if !auth.isAuthenticated()}
+    <!-- Confirm Email -->
+    <Route path={routes.confirmEmail}>
+      {#if !$auth}
         <ConfirmEmail />
       {/if}
     </Route>

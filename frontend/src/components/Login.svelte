@@ -3,6 +3,7 @@
   import { Link, navigate } from "svelte-routing";
   import type { Credentials } from "@/models/types";
   import auth from "@/common/auth";
+  import { routes } from "@/common/routes";
 
   const credentials = {
     username: "",
@@ -28,19 +29,22 @@
 
       // Redirect
       const search = window.location.search;
-      if (search.length) {
-        const searchParams = new URLSearchParams(search);
-        const redirect = searchParams.get("redirect");
+      const searchParams = new URLSearchParams(search);
+      const redirect = searchParams.get("redirect");
 
-        if (redirect) {
-          window.location.href = decodeURIComponent(redirect);
-        } else {
-          navigate("/");
-        }
+      if (redirect) {
+        window.location.href = decodeURIComponent(redirect);
+      } else {
+        navigate("/");
       }
     } else {
       error = result.error;
     }
+  };
+
+  const handleLogout = () => {
+    auth.logOut();
+    navigate(routes.login);
   };
 </script>
 
@@ -92,6 +96,7 @@
 
   <div class="mt-4">
     <button
+      on:click={handleLogout}
       class="p-2 w-full rounded-md text-white bg-violet-500 hover:bg-violet-600"
     >
       Login

@@ -6,11 +6,11 @@
     type UpdateTodoModel,
   } from "shared/lib/todos";
   import { todoService } from "@/services";
-  import FormErrors from "@/lib/FormErrors.svelte";
+  import FormErrors from "@/components/FormErrors.svelte";
   import { toast } from "@zerodevx/svelte-toast";
   import toastThemes from "@/common/toastThemes";
   import { getErrorMessage } from "@/common/getErrorMessage";
-  import Loading from "@/lib/Loading.svelte";
+  import Loading from "@/components/Loading.svelte";
 
   export let todoId: string;
   let originalTodo: TodoModel | null = null;
