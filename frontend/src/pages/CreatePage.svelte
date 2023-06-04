@@ -13,6 +13,10 @@
   let loading = false;
 
   const handleCancel = () => {
+    if (loading) {
+      return;
+    }
+
     navigate("/");
   };
 
@@ -35,6 +39,20 @@
     } finally {
       loading = false;
     }
+  };
+
+  const generateTodo = () => {
+    if (loading) {
+      return;
+    }
+
+    todo.title = faker.word.words({
+      count: {
+        min: 3,
+        max: 10,
+      },
+    });
+    todo.content = faker.lorem.paragraph({ min: 3, max: 8 });
   };
 </script>
 
@@ -62,15 +80,7 @@
     <div class="flex flex-row justify-end gap-2">
       <button
         type="button"
-        on:click={() => {
-          todo.title = faker.word.words({
-            count: {
-              min: 3,
-              max: 8,
-            },
-          });
-          todo.content = faker.lorem.paragraph({ min: 1, max: 3 });
-        }}
+        on:click={generateTodo}
         class="px-8 py-2 rounded-md shadow text-white bg-indigo-500 hover:bg-indigo-600 min-w-[120px]"
       >
         Generate
