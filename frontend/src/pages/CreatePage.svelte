@@ -7,6 +7,21 @@
   import { faker } from "@faker-js/faker";
   import toast from "@/common/toast";
   import LoadingSpinner from "@/components/LoadingSpinner.svelte";
+  import { onMount } from "svelte";
+
+  const APP_ENV = "app_env";
+
+  // This is just for testing, but will keep it
+  let isDev = localStorage.getItem(APP_ENV) === "dev";
+
+  onMount(() => {
+    window.addEventListener("storage", (e) => {
+      if (e.key === APP_ENV) {
+        isDev = e.newValue === "dev";
+        console.log({ isDev });
+      }
+    });
+  });
 
   const todo: Partial<CreateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
@@ -78,13 +93,15 @@
     <FormErrors {issues} />
 
     <div class="flex flex-row justify-end gap-2">
-      <button
-        type="button"
-        on:click={generateTodo}
-        class="px-8 py-2 rounded-md shadow text-white bg-indigo-500 hover:bg-indigo-600 min-w-[120px]"
-      >
-        Generate
-      </button>
+      {#if isDev}
+        <button
+          type="button"
+          on:click={generateTodo}
+          class="px-8 py-2 rounded-md shadow text-white bg-indigo-500 hover:bg-indigo-600 min-w-[120px]"
+        >
+          Generate
+        </button>
+      {/if}
 
       <button
         type="button"
