@@ -2,7 +2,7 @@ import type { TodoModel } from "shared/lib/todos";
 import { writable, get } from "svelte/store";
 import type { TodoService } from ".";
 import { faker } from "@faker-js/faker";
-import { wait } from "@/utils/wait";
+import { wait } from "@/common/wait";
 
 const TODO_KEY = "todos";
 const writer = writable<TodoModel[]>([]);

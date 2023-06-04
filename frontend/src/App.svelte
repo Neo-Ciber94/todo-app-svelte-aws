@@ -5,11 +5,12 @@
   import { Router, Route } from "svelte-routing";
   import NavBar from "./lib/NavBar.svelte";
   import { SvelteToast } from "@zerodevx/svelte-toast";
-  import NotFound from "./pages/NotFound.svelte";
-  import Authorized from "./lib/Authorized.svelte";
-  import SignIn from "./lib/SignIn.svelte";
-  import auth from "./utils/auth";
-  import SignUp from "./lib/SignUp.svelte";
+  import NotFound from "@/pages/NotFound.svelte";
+  import Authorized from "@/components/Authorized.svelte";
+  import auth from "@/common/auth";
+  import SignUp from "@/components/SignUp.svelte";
+  import Login from "@/components/Login.svelte";
+  import ConfirmEmail from "@/components/ConfirmEmail.svelte";
 </script>
 
 <Router>
@@ -33,7 +34,7 @@
     <!-- Login -->
     <Route path="/login">
       {#if !auth.isAuthenticated()}
-        <SignIn />
+        <Login />
       {/if}
     </Route>
 
@@ -41,6 +42,13 @@
     <Route path="/signup">
       {#if !auth.isAuthenticated()}
         <SignUp />
+      {/if}
+    </Route>
+
+    <!-- Confirm Code -->
+    <Route path="/confirm_email">
+      {#if !auth.isAuthenticated()}
+        <ConfirmEmail />
       {/if}
     </Route>
 

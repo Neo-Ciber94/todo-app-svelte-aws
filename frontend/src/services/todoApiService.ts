@@ -1,7 +1,7 @@
-import auth from "@/utils/auth";
+import auth from "@/common/auth";
 import type { TodoService } from ".";
 import type { TodoModel } from "shared/lib/todos";
-import { getErrorMessage } from "@/utils/getErrorMessage";
+import { getErrorMessage } from "@/common/getErrorMessage";
 
 const fetchAPI = async (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response> => {
   const token = auth.getToken();

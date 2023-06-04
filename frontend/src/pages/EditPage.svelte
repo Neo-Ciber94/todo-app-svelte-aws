@@ -8,8 +8,8 @@
   import { todoService } from "@/services";
   import FormErrors from "@/lib/FormErrors.svelte";
   import { toast } from "@zerodevx/svelte-toast";
-  import toastThemes from "@/utils/toastThemes";
-  import { getErrorMessage } from "@/utils/getErrorMessage";
+  import toastThemes from "@/common/toastThemes";
+  import { getErrorMessage } from "@/common/getErrorMessage";
   import Loading from "@/lib/Loading.svelte";
 
   export let todoId: string;

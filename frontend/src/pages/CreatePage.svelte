@@ -4,8 +4,8 @@
   import { createTodoModel, type CreateTodoModel } from "shared/lib/todos";
   import { navigate } from "svelte-routing";
   import { toast } from "@zerodevx/svelte-toast";
-  import toastThemes from "@/utils/toastThemes";
-  import { getErrorMessage } from "@/utils/getErrorMessage";
+  import toastThemes from "@/common/toastThemes";
+  import { getErrorMessage } from "@/common/getErrorMessage";
   import { faker } from "@faker-js/faker";
 
   const todo: Partial<CreateTodoModel> = {};
