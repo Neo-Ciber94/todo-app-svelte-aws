@@ -7,22 +7,29 @@
   import events from "@/common/events";
   import { routes } from "@/common/routes";
   import toast from "@/common/toast";
+  import LoadingSpinner from "./LoadingSpinner.svelte";
 
   export let todo: TodoModel;
+  let isDeleting = false;
+  let isUpdating = false;
 
   const handleToggle = async () => {
     try {
+      isUpdating = true;
       await todoService.toggleTodo(todo.id);
     } catch (err) {
       console.error(err);
       toast.error({
         message: getErrorMessage(err) || "Something went wrong",
       });
+    } finally {
+      isUpdating = false;
     }
   };
 
   const handleDelete = async () => {
     try {
+      isDeleting = true;
       await todoService.deleteTodo(todo.id);
       window.dispatchEvent(new CustomEvent(events.revalidate));
       toast.error({
@@ -33,6 +40,8 @@
       toast.error({
         message: getErrorMessage(err) || "Something went wrong",
       });
+    } finally {
+      isDeleting = false;
     }
   };
 </script>
@@ -44,12 +53,21 @@
     >
       <div class="text-gray-800 flex flex-row justify-between items-center">
         <div class="flex flex-row items-center">
-          <input
-            type="checkbox"
-            class="mr-3 text-indigo-600 focus:ring-indigo-700 h-5 w-5"
-            bind:checked={todo.done}
-            on:click|stopPropagation={handleToggle}
-          />
+          <div class="mr-3">
+            {#if isUpdating}
+              <div class="text-indigo-600">
+                <LoadingSpinner />
+              </div>{:else}
+              <input
+                type="checkbox"
+                disabled={isUpdating}
+                class={`disabled:opacity-70 text-indigo-600 focus:ring-indigo-700 h-5 w-5`}
+                bind:checked={todo.done}
+                on:click|stopPropagation={handleToggle}
+              />
+            {/if}
+          </div>
+
           <div
             class={`font-bold ${todo.done ? "line-through opacity-50" : ""}`}
           >
@@ -58,10 +76,18 @@
         </div>
 
         <button
+          disabled={isDeleting}
           on:click|stopPropagation|preventDefault={handleDelete}
-          class="text-red-500 hover:text-red-700 text-3xl flex flex-row items-center justify-center w-4 h-4"
+          class={`disabled:opacity-70 text-red-500 
+          }  text-3xl flex flex-row items-center justify-center w-4 h-4 ${
+            isDeleting ? "" : "hover:text-red-700"
+          }`}
         >
-          <FaRegTrashAlt />
+          {#if isDeleting}
+            <LoadingSpinner />
+          {:else}
+            <FaRegTrashAlt />
+          {/if}
         </button>
       </div>
 
