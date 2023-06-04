@@ -17,7 +17,6 @@
     const isValidEmail = emailValidator.safeParse(email).success === true;
 
     onMount(() => {
-        console.log({ email });
         if (!isValidEmail) {
             toast.error({ message: "Invalid email" });
         }
