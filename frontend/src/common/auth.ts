@@ -20,16 +20,6 @@ const userPool = new AwsCognito.CognitoUserPool({
 });
 
 function loadSession(): AuthSession | null {
-  const user = userPool.getCurrentUser();
-
-  if (user) {
-    user.getSession((err, session: AwsCognito.CognitoUserSession) => {
-      console.log(session);
-
-    })
-  }
-
-
   try {
     const rawSession = localStorage.getItem(AUTH_TOKEN);
 
