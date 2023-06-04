@@ -17,7 +17,7 @@
   onMount(() => {
     window.addEventListener("storage", (e) => {
       if (e.key === APP_ENV) {
-        isDev = e.newValue === "dev";
+        isDev = localStorage.getItem(APP_ENV) === "dev";
         console.log({ isDev });
       }
     });
