@@ -1,0 +1,412 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: A todo app using Svelte and AWS
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+Parameters:
+  Stage:
+    Type: String
+    Description: The application stage
+    Default: "prod"
+    AllowedValues:
+      - dev
+      - prod
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 512
+    Runtime: nodejs18.x
+    Tracing: Active
+    Environment:
+      Variables:
+        TABLE_NAME: todos
+        STAGE: !Ref Stage
+        ORIGINS: !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName]]
+  Api:
+    TracingEnabled: true
+
+Resources:
+  UserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-user-pool
+      UsernameAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      AutoVerifiedAttributes:
+        - email
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+
+  UserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-pool-client
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: True
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+      CallbackURLs:
+        - !Join ['', ["https://",  !GetAtt TodoWebAppCloudFront.DomainName]]
+      SupportedIdentityProviders:
+        - COGNITO
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  IdentityPool:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      IdentityPoolName: !Sub ${AWS::StackName}-identity
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  UserPoolDomain:
+    Type: "AWS::Cognito::UserPoolDomain"
+    Properties:
+      Domain: !Sub todo-app-svelte-${Stage}-domain
+      UserPoolId: !Ref UserPool
+
+  # S3 Bucket containing the frontend web page
+  WebAppBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-webapp-bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Delete
+
+  WebAppBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref WebAppBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${WebAppBucket}/*"
+
+  # The Amazon CloudFront origin access identity
+  CFOriginAccessIdentity:
+    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+    DependsOn:
+      - WebAppBucket
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub "access-identity-react-cors-spa-${AWS::StackName}"
+
+  TodoWebAppCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        WebACLId: "" # We don't want the firewall to avoid extra costs
+        Origins:
+          - DomainName: !GetAtt WebAppBucket.RegionalDomainName
+            Id: !Join ["", [!Ref "WebAppBucket", "-", !Sub "${AWS::StackName}"]]
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CFOriginAccessIdentity}"
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId:
+            !Join ["", [!Ref "WebAppBucket", "-", !Sub "${AWS::StackName}"]]
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-caching-optimized
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # CORS-S3Origin: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-cors-s3
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  TodoApiEndpoint:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Stage
+      CorsConfiguration:
+        AllowOrigins:
+          - "https://d1rmrlduejo4w0.cloudfront.net"
+        AllowMethods: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+        AllowCredentials: true
+        AllowHeaders: 
+          - 'authorization'
+          - 'content-type'
+      Auth:
+        DefaultAuthorizer: TodoAppCognitoAuthorizer
+        Authorizers:
+          TodoAppCognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer:
+                !Join [
+                  "",
+                  [
+                    "https://cognito-idp.",
+                    !Sub "${AWS::Region}",
+                    ".amazonaws.com/",
+                    !Ref UserPool,
+                  ],
+                ]
+              audience:
+                - !Ref UserPoolClient
+
+  # Get all todos
+  getTodos:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/handlers
+      Handler: getTodos.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        getTodosEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: get
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - getTodos.ts
+
+  # Get by id
+  getTodoById:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./functions/handlers
+      Handler: getTodoById.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        getTodoByIdEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: get
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - getTodoById.ts
+
+  # Create todo
+  createTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/handlers
+      Handler: createTodo.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        createTodoEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: post
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - createTodo.ts
+
+  # Update todo
+  updateTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/handlers
+      Handler: updateTodo.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        updateTodoEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: put
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - updateTodo.ts
+
+  # Delete todo
+  deleteTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/handlers
+      Handler: deleteTodo.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        deleteTodoEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{id}
+            Method: delete
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - deleteTodo.ts
+
+  # Toggle todo
+  toggleTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/handlers
+      Handler: toggleTodo.handler
+      Architectures:
+        - x86_64
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the todos table
+        - DynamoDBCrudPolicy:
+            TableName: todos
+      Events:
+        toggleTodoEvent:
+          Type: HttpApi
+          Properties:
+            Path: /toggle/{id}
+            Method: put
+            ApiId: !Ref TodoApiEndpoint
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+          - toggleTodo.ts
+
+  # Table
+  TodoDbTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: todos
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  TodoApiEndpoint:
+    Description: A todo app with svelte and AWS
+    Value: !Sub "https://${TodoApiEndpoint}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+
+  WebsiteBucketURL:
+    Value: !GetAtt
+      - WebAppBucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+
+  CloudFrontURL:
+    Description: CloudFront URL for the web application
+    Value: !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
+
+  CFDistribution:
+    Description: Id of the cloudfront distribution
+    Value: !Ref TodoWebAppCloudFront
+
+  UserPoolDomainURL:
+    Description: "Hosted UI URL for user authentication"
+    Value: !Join
+      - ""
+      - - !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=email+openid&redirect_uri="
+        - !Join ["", ["https://", !GetAtt TodoWebAppCloudFront.DomainName]]
+
+  CognitoUserPoolId:
+    Description: ID of the User Pool
+    Value: !Ref UserPool
+
+  CognitoUserPoolClientId:
+    Description: ID of the User Pool Client
+    Value: !Ref UserPoolClient

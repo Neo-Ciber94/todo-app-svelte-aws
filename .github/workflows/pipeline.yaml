@@ -1,0 +1,175 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - "main"
+      - "dev"
+
+env:
+  USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  SAM_TEMPLATE: backend/template.yaml
+
+  # Development
+  STACK_NAME: todo-app-svelte-aws-dev
+  ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
+  REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  test:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          # trigger the tests here
+
+  build-and-package:
+    if: github.ref == 'refs/heads/main'
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: true
+      - run: npm i -g esbuild
+
+      - name: Build resources
+        run: sam build --template ${SAM_TEMPLATE}
+
+      - name: Assume the pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ env.USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+          role-session-name: testing-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Upload artifacts to bucket
+        run: |
+          sam package \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --region ${REGION} \
+            --output-template-file packaged-dev.yaml
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: packaged-dev.yaml
+          path: packaged-dev.yaml
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: [build-and-package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: actions/download-artifact@v3
+        with:
+          name: packaged-dev.yaml
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ env.USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+          role-session-name: testing-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to testing account
+        run: |
+          sam deploy --stack-name ${STACK_NAME} \
+            --template packaged-dev.yaml \
+            --capabilities CAPABILITY_IAM \
+            --region ${REGION} \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides Stage=dev
+
+      - name: Set AWS credentials
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+
+      - name: Get Client API Url
+        id: get-api-url
+        run: |
+          OUTPUT_API_URL=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`TodoApiEndpoint`].OutputValue' --output text)
+          echo "::set-output name=api-url::$OUTPUT_API_URL"
+
+      - name: Get Cognito Client User Pool Id
+        id: get-user-pool-id
+        run: |
+          OUTPUT_USER_POOL=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolId`].OutputValue' --output text)
+          echo "::set-output name=user-pool-id::$OUTPUT_USER_POOL"
+
+      - name: Get Cognito Client Id
+        id: get-client-id
+        run: |
+          OUTPUT_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CognitoUserPoolClientId`].OutputValue' --output text)
+          echo "::set-output name=client-id::$OUTPUT_CLIENT_ID"
+
+      - name: Get Cloudfront distribution
+        id: get-cloudfront-distribution
+        run: |
+          OUTPUT_DISTRIBUTION_ID=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${REGION} --query 'Stacks[0].Outputs[?OutputKey==`CFDistribution`].OutputValue' --output text)
+          echo "::set-output name=cloudfront-distribution::$OUTPUT_DISTRIBUTION_ID"
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 7
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build and deploy frontend
+        run: |
+          export VITE_API_URL=${{ steps.get-api-url.outputs.api-url }}
+          export VITE_COGNITO_USER_POOL_ID=${{ steps.get-user-pool-id.outputs.user-pool-id }}
+          export VITE_COGNITO_CLIENT_ID=${{ steps.get-client-id.outputs.client-id }}
+          cd frontend
+          pnpm install
+          pnpm run build
+
+      - name: Remove all S3 files
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: aws s3 rm s3://${{env.STACK_NAME}}-webapp-bucket --recursive
+
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
+        name: Upload web app
+        with:
+          command: cp
+          source: ./frontend/dist/
+          destination: s3://${{env.STACK_NAME}}-webapp-bucket
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          flags: --recursive
+
+      - name: Invalidate Cloudfront cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: aws cloudfront create-invalidation --paths '/*' --distribution-id ${{ steps.get-cloudfront-distribution.outputs.cloudfront-distribution }}
+          
