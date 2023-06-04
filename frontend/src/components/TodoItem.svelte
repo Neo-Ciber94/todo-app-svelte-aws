@@ -3,11 +3,10 @@
   import type { TodoModel } from "shared/lib/todos";
   import FaRegTrashAlt from "svelte-icons/fa/FaRegTrashAlt.svelte";
   import { Link } from "svelte-routing";
-  import { toast } from "@zerodevx/svelte-toast";
   import { getErrorMessage } from "@/common/getErrorMessage";
-  import toastThemes from "@/common/toastThemes";
   import events from "@/common/events";
-  import { fade, fly } from "svelte/transition";
+  import { routes } from "@/common/routes";
+  import toast from "@/common/toast";
 
   export let todo: TodoModel;
 
@@ -16,9 +15,8 @@
       await todoService.toggleTodo(todo.id);
     } catch (err) {
       console.error(err);
-      toast.push({
-        msg: getErrorMessage(err) || "Something went wrong",
-        theme: toastThemes.error,
+      toast.error({
+        message: getErrorMessage(err) || "Something went wrong",
       });
     }
   };
@@ -27,22 +25,20 @@
     try {
       await todoService.deleteTodo(todo.id);
       window.dispatchEvent(new CustomEvent(events.revalidate));
-      toast.push({
-        msg: "Todo was deleted",
-        theme: toastThemes.success,
+      toast.error({
+        message: "Todo was deleted",
       });
     } catch (err) {
       console.error(err);
-      toast.push({
-        msg: getErrorMessage(err) || "Something went wrong",
-        theme: toastThemes.error,
+      toast.error({
+        message: getErrorMessage(err) || "Something went wrong",
       });
     }
   };
 </script>
 
 {#key todo.id}
-  <Link to={`/edit/${todo.id}`}
+  <Link to={routes.editTodo(todo.id)}
     ><div
       class="border border-gray-400/50 rounded-md shadow py-2 px-4 bg-white"
     >

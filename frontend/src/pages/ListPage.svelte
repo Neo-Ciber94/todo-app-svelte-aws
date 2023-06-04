@@ -2,11 +2,10 @@
   import TodoList from "@/components/TodoList.svelte";
   import { todoService } from "@/services";
   import { getErrorMessage } from "@/common/getErrorMessage";
-  import toastThemes from "@/common/toastThemes";
-  import { toast } from "@zerodevx/svelte-toast";
   import events from "@/common/events";
   import type { TodoModel } from "shared/lib/todos";
   import Loading from "@/components/Loading.svelte";
+  import toast from "@/common/toast";
 
   let todos: TodoModel[] = [];
 
@@ -17,9 +16,8 @@
       return result;
     } catch (err) {
       console.error(err);
-      toast.push({
-        msg: getErrorMessage(err) || "Something went wrong",
-        theme: toastThemes.error,
+      toast.error({
+        message: getErrorMessage(err) || "Something went wrong",
       });
       return [];
     }

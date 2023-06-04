@@ -113,17 +113,32 @@ async function register(username: string, password: string) {
   return result.user;
 }
 
-export async function confirmUser(username: string, code: string) {
+async function confirmUser(username: string, code: string) {
   const cognitoUser = new AwsCognito.CognitoUser({
     Username: username,
     Pool: userPool
   });
 
-  const result = await new Promise((resolve, reject) => cognitoUser.confirmRegistration(code, false, (err, result) => {
+  await new Promise((resolve, reject) => cognitoUser.confirmRegistration(code, false, (err, result) => {
     if (err) {
       reject(err)
     } else {
       resolve(result)
+    }
+  }));
+}
+
+async function resendCode(username: string) {
+  const cognitoUser = new AwsCognito.CognitoUser({
+    Username: username,
+    Pool: userPool
+  });
+
+  await new Promise((resolve, reject) => cognitoUser.resendConfirmationCode((err, result) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(result);
     }
   }));
 }
@@ -146,6 +161,7 @@ export default {
   signIn,
   register,
   confirmUser,
+  resendCode,
   logOut,
   subscribe: authSessionWritable.subscribe
 }

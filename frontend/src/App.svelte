@@ -12,6 +12,7 @@
   import Login from "@/components/Login.svelte";
   import ConfirmEmail from "@/components/ConfirmEmail.svelte";
   import { routes } from "./common/routes";
+  import ResendCode from "./components/ResendCode.svelte";
 </script>
 
 <Router>
@@ -27,7 +28,7 @@
       <Route path={routes.newTodo} component={CreatePage} />
 
       <!-- Edit todo -->
-      <Route path={routes.editTodo} let:params>
+      <Route path={routes.editTodo(":id")} let:params>
         <EditPage todoId={params.id} />
       </Route>
     </Authorized>
@@ -50,6 +51,13 @@
     <Route path={routes.confirmEmail}>
       {#if !$auth}
         <ConfirmEmail />
+      {/if}
+    </Route>
+
+    <!-- Resend code -->
+    <Route path={routes.resendCode}>
+      {#if !$auth}
+        <ResendCode />
       {/if}
     </Route>
 

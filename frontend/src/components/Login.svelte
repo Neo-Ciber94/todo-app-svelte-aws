@@ -4,6 +4,8 @@
   import type { Credentials } from "@/models/types";
   import auth from "@/common/auth";
   import { routes } from "@/common/routes";
+  import toast from "@/common/toast";
+  import { getErrorMessage } from "@/common/getErrorMessage";
 
   const credentials = {
     username: "",
@@ -24,18 +26,24 @@
     const result = validator.safeParse(credentials);
 
     if (result.success === true) {
-      const data = result.data;
-      await auth.signIn(data.username, data.password);
+      try {
+        const data = result.data;
+        await auth.signIn(data.username, data.password);
 
-      // Redirect
-      const search = window.location.search;
-      const searchParams = new URLSearchParams(search);
-      const redirect = searchParams.get("redirect");
+        // Redirect
+        const search = window.location.search;
+        const searchParams = new URLSearchParams(search);
+        const redirect = searchParams.get("redirect");
 
-      if (redirect) {
-        window.location.href = decodeURIComponent(redirect);
-      } else {
-        navigate("/");
+        if (redirect) {
+          window.location.href = decodeURIComponent(redirect);
+        } else {
+          navigate("/");
+        }
+      } catch (err) {
+        toast.error({
+          message: getErrorMessage(err) ?? "Something went wrong",
+        });
       }
     } else {
       error = result.error;
@@ -90,7 +98,7 @@
     {/if}
   </div>
 
-  <Link to="/signup">
+  <Link to={routes.signup}>
     <div class="text-xs text-pink-500 hover:text-pink-700">Register?</div>
   </Link>
 

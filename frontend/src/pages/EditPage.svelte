@@ -7,10 +7,9 @@
   } from "shared/lib/todos";
   import { todoService } from "@/services";
   import FormErrors from "@/components/FormErrors.svelte";
-  import { toast } from "@zerodevx/svelte-toast";
-  import toastThemes from "@/common/toastThemes";
   import { getErrorMessage } from "@/common/getErrorMessage";
   import Loading from "@/components/Loading.svelte";
+  import toast from "@/common/toast";
 
   export let todoId: string;
   let originalTodo: TodoModel | null = null;
@@ -22,9 +21,8 @@
       originalTodo = { ...t };
       todo = { ...t };
     } else {
-      toast.push({
-        msg: "Not Found",
-        theme: toastThemes.error,
+      toast.error({
+        message: "Not Found",
       });
     }
 
@@ -45,9 +43,8 @@
       if (result.success === true) {
         if (wasChanged) {
           await todoService.updateTodo(result.data);
-          toast.push({
-            msg: "Todo was updated",
-            theme: toastThemes.success,
+          toast.success({
+            message: "Todo was updated",
           });
         }
 
@@ -57,9 +54,8 @@
       }
     } catch (err) {
       console.error(err);
-      toast.push({
-        msg: getErrorMessage(err) || "Something went wrong",
-        theme: toastThemes.error,
+      toast.error({
+        message: getErrorMessage(err) || "Something went wrong",
       });
     }
   };

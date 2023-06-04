@@ -1,8 +1,11 @@
 <script lang="ts">
     import { z } from "zod";
-    import { Link } from "svelte-routing";
+    import { Link, navigate } from "svelte-routing";
     import type { Credentials } from "@/models/types";
     import auth from "@/common/auth";
+    import { routes } from "@/common/routes";
+    import toast from "@/common/toast";
+    import { getErrorMessage } from "@/common/getErrorMessage";
 
     const credentials = {
         username: "",
@@ -23,8 +26,15 @@
         const result = validator.safeParse(credentials);
 
         if (result.success === true) {
-            const data = result.data;
-            await auth.register(data.username, data.password);
+            try {
+                const data = result.data;
+                await auth.register(data.username, data.password);
+                navigate(`${routes.confirmEmail}?email=${data.username}`);
+            } catch (err) {
+                toast.error({
+                    message: getErrorMessage(err) ?? "Something went wrong",
+                });
+            }
         } else {
             error = result.error;
         }
@@ -73,9 +83,17 @@
         {/if}
     </div>
 
-    <Link to="/login">
-        <div class="text-xs text-pink-500 hover:text-pink-700">Login?</div>
-    </Link>
+    <div class="flex flex-row justify-between">
+        <Link to="/login">
+            <div class="text-xs text-pink-500 hover:text-pink-700">Login?</div>
+        </Link>
+
+        <Link to={routes.resendCode}>
+            <div class="text-xs text-pink-500 hover:text-pink-700">
+                Confirm Email
+            </div>
+        </Link>
+    </div>
 
     <div class="mt-4">
         <button

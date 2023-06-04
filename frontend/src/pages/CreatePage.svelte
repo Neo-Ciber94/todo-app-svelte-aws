@@ -3,10 +3,9 @@
   import { todoService } from "@/services";
   import { createTodoModel, type CreateTodoModel } from "shared/lib/todos";
   import { navigate } from "svelte-routing";
-  import { toast } from "@zerodevx/svelte-toast";
-  import toastThemes from "@/common/toastThemes";
   import { getErrorMessage } from "@/common/getErrorMessage";
   import { faker } from "@faker-js/faker";
+  import toast from "@/common/toast";
 
   const todo: Partial<CreateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
@@ -27,9 +26,8 @@
       }
     } catch (err) {
       console.error(err);
-      toast.push({
-        msg: getErrorMessage(err) || "Something went wrong",
-        theme: toastThemes.error,
+      toast.error({
+        message: getErrorMessage(err) || "Something went wrong",
       });
     }
   };
