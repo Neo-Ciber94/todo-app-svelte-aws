@@ -10,11 +10,13 @@
   import { getErrorMessage } from "@/common/getErrorMessage";
   import Loading from "@/components/Loading.svelte";
   import toast from "@/common/toast";
+  import LoadingSpinner from "@/components/LoadingSpinner.svelte";
 
   export let todoId: string;
   let originalTodo: TodoModel | null = null;
   let todo: Partial<UpdateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
+  let loading = false;
 
   const todoPromise = todoService.getTodoById(todoId).then((t) => {
     if (t) {
@@ -42,6 +44,7 @@
     try {
       if (result.success === true) {
         if (wasChanged) {
+          loading = true;
           await todoService.updateTodo(result.data);
           toast.success({
             message: "Todo was updated",
@@ -57,6 +60,8 @@
       toast.error({
         message: getErrorMessage(err) || "Something went wrong",
       });
+    } finally {
+      loading = false;
     }
   };
 </script>
@@ -103,9 +108,16 @@
         </button>
 
         <button
-          class="px-8 py-2 rounded-md shadow text-white bg-pink-500 hover:bg-pink-600 min-w-[120px]"
+          disabled={loading}
+          class={`disabled:opacity-70 px-8 py-2 rounded-md shadow text-white bg-pink-500 min-w-[120px] ${
+            loading ? "" : "hover:bg-pink-600"
+          } `}
         >
-          Update
+          {#if loading}
+            <LoadingSpinner />
+          {:else}
+            {`Update`}
+          {/if}
         </button>
       </div>
     </form>

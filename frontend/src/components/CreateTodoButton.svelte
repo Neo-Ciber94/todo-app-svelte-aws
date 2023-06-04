@@ -1,8 +1,9 @@
 <script>
+  import { routes } from "@/common/routes";
   import { navigate } from "svelte-routing";
 
   const handleClick = () => {
-    navigate("/new");
+    navigate(routes.newTodo);
   };
 </script>
 

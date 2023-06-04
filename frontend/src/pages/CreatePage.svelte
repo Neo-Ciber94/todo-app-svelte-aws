@@ -6,9 +6,11 @@
   import { getErrorMessage } from "@/common/getErrorMessage";
   import { faker } from "@faker-js/faker";
   import toast from "@/common/toast";
+  import LoadingSpinner from "@/components/LoadingSpinner.svelte";
 
   const todo: Partial<CreateTodoModel> = {};
   let issues: Zod.ZodIssue[] = [];
+  let loading = false;
 
   const handleCancel = () => {
     navigate("/");
@@ -18,6 +20,7 @@
     const result = createTodoModel.safeParse(todo);
 
     try {
+      loading = true;
       if (result.success === true) {
         await todoService.createTodo(result.data);
         navigate("/");
@@ -29,6 +32,8 @@
       toast.error({
         message: getErrorMessage(err) || "Something went wrong",
       });
+    } finally {
+      loading = false;
     }
   };
 </script>
@@ -80,9 +85,16 @@
       </button>
 
       <button
-        class="px-8 py-2 rounded-md shadow text-white bg-pink-500 hover:bg-pink-600 min-w-[120px]"
+        disabled={loading}
+        class={`disabled:opacity-70 px-8 py-2 rounded-md shadow text-white bg-pink-500 min-w-[120px] ${
+          loading ? "" : "hover:bg-pink-600"
+        } `}
       >
-        Create
+        {#if loading}
+          <LoadingSpinner />
+        {:else}
+          {`Create`}
+        {/if}
       </button>
     </div>
   </form>
