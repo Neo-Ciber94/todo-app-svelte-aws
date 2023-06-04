@@ -17,6 +17,7 @@
     try {
       isUpdating = true;
       await todoService.toggleTodo(todo.id);
+      todo.done = !todo.done;
     } catch (err) {
       console.error(err);
       toast.error({
