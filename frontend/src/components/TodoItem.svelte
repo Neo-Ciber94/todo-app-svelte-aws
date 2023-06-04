@@ -52,6 +52,7 @@
     on:click={(e) => {
       if (isDeleting || isUpdating) {
         e.preventDefault();
+        e.stopPropagation();
       }
     }}
     ><div
